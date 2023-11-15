@@ -1,10 +1,10 @@
 import os
 from pathlib import Path
 
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-SECRET_KEY = 'django-insecure-+=$4pf_&*+g%ddnacjzk4%6hnfs00e3&zpqzgr0h6h*cdi%d)k'
+SECRET_KEY = 'django-insecure-04c#@#qw19rva%$kkld*=!8rp(!4$h#d=755wxns^d+*wmn8-#'
 
 DEBUG = True
 
@@ -22,6 +22,7 @@ INSTALLED_APPS = [
     'colorfield',
     'djoser',
     'recipes.apps.RecipesConfig',
+    'api.apps.ApiConfig',
     'django_filters',
 ]
 
@@ -84,10 +85,6 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
-
-
-# Internationalization
-# https://docs.djangoproject.com/en/3.2/topics/i18n/
 
 LANGUAGE_CODE = 'ru'
 

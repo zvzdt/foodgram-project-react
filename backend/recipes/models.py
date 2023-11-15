@@ -1,51 +1,25 @@
-from django.contrib.auth import get_user_model
 from django.db import models
+from django.contrib.auth import get_user_model
 from colorfield.fields import ColorField
 
 User = get_user_model()
 
-
-class Ingredient(models.Model):
-    title = models.CharField(
-        'ингредиенты',
-        blank=False,
-        max_length=50
-        )
-    quantity = models.FloatField(
-        'количество',
-        blank=False
-    )
-    units = models.CharField(
-        'единица измерения',
-        blank=False,
-        max_length=10
-        )
-    
-    class Meta:
-        verbose_name='Ингредиент'
-        verbose_name_plural = 'Ингредиенты'
-
-    def __str__(self):
-        return self.name
-
-
-class Tag(models.Model):
-    title = models.CharField(
-        'имя тэга',
-        max_length=50, 
+class Tags(models.Model):
+    name = models.CharField(
+        verbose_name='имя тэга',
+        max_length=200,
         blank=False, 
         unique=True
         )
     color = ColorField(
-        'цвет',
+        verbose_name='цвет',
         format='hex'
         )
     slug = models.SlugField(
-        max_length=50, 
-        blank=False, 
-        unique=True
+        max_length=200, 
+        unique=True, 
+        null=True
         )
-    
     class Meta:    
         verbose_name = 'Тэг'
         verbose_name_plural = 'Тэги'
@@ -54,53 +28,64 @@ class Tag(models.Model):
         return self.name
 
 
-class Recipe(models.Model):
-    author = models.ForeignKey(      
-        User, 
-        on_delete=models.CASCADE,
-        verbose_name='автор'
-        )
-    pub_date = models.DateTimeField(
-        'Дата публикации', 
-        auto_now_add=True
-        )
-    title = models.CharField(
-        'название',
-        blank=False, 
-        max_length=50
-        )
-    image = models.ImageField(
-        'фото',
-        upload_to='recipes/images/',
+class Ingredients(models.Model):
+    name = models.CharField(
+        verbose_name='название',
+        max_length=200,
         blank=False
         )
-    description = models.TextField(
-        'описание',
+    measurement_unit = models.CharField(
+        verbose_name='единица измерения',
+        max_length=200,
         blank=False
-    )
-    ingredients = models.ForeignKey(
-        Ingredient, 
-        related_name='ingredient', 
-        on_delete=models.CASCADE,
-        verbose_name='ингредиенты'
-    )
-    tag = models.ForeignKey(
-        Tag, 
-        related_name='tags', 
-        on_delete=models.CASCADE,
-        verbose_name='тэг'
         )
-    cooking_time = models.DurationField(
-        'время приготовления',
-        blank=False
-    )
 
     class Meta:
-        verbose_name = 'Рецепт'
-        verbose_name_plural = 'Рецепты'
+        verbose_name = 'Ингредиент'
+        verbose_name_plural = 'Ингредиенты'
 
     def __str__(self):
         return self.name
 
 
+class Recipe(models.Model):
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='recipes',
+        verbose_name='Автор'
+    )
+    ingredients = models.ManyToManyField(
+        Ingredients,
+        related_name='recipes',
+        verbose_name='ингредиенты',
+        blank=False
+        )
+    tags = models.ManyToManyField(
+        Tags,
+        related_name='recipes', 
+        verbose_name='теги'
+        )
+    image = models.ImageField(
+        verbose_name='картинка'
+        )
+    name = models.CharField(
+        verbose_name='название',
+        max_length=200,
+        blank=False
+        )
+    text = models.TextField(
+        verbose_name='описание',
+        blank=False
+        )
+    cooking_time = models.PositiveIntegerField(
+        verbose_name='время приготовления (в минутах)',
+        blank=False
+        )
 
+    class Meta:    
+        verbose_name = 'Рецепт'
+        verbose_name_plural = 'Рецепты'
+
+    def __str__(self):
+        return self.name
