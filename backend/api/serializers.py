@@ -1,15 +1,11 @@
 import base64
 
-from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
 from rest_framework import serializers
 #from drf_extra_fields.fields import Base64ImageField
 from serializers import UserCreateSerializer, UserSerializer
 
-from recipes.models import Ingredients, Recipe, Tags
-
-
-User = get_user_model()
+from recipes.models import Ingredients, Recipe, Tags, User
 
 
 class CustomUserSerializer(UserSerializer):
@@ -24,7 +20,7 @@ class IngredientsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ingredients
         fields = ('id', 'name', 'measurement_unit')
-        read_only_fields = ('id')
+        read_only_fields = ('id',)
 
 
 class TagsSerializer(serializers.ModelSerializer):
@@ -32,7 +28,7 @@ class TagsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tags
         fields = ('id', 'name', 'color', 'slug')
-        read_only_fields = ('id')
+        read_only_fields = ('id',)
 
 
 class Base64ImageField(serializers.ImageField):
@@ -56,4 +52,4 @@ class RecipeSerializer(serializers.ModelSerializer):
         model = Recipe
         fields = ('id', 'tags', 'author', 'ingredients', 
                   'name', 'image', 'text', 'cooking_time')
-        read_only_fields = ('id')
+        read_only_fields = ('id',)
