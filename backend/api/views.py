@@ -4,7 +4,8 @@ from rest_framework.permissions import (IsAuthenticated,
                                         IsAuthenticatedOrReadOnly, AllowAny)
 from rest_framework.pagination import LimitOffsetPagination
 
-from recipes.models import Ingredients, Recipe, Tags, User
+from recipes.models import Ingredients, Recipe, Tags#, User
+from users.models import User
 from .serializers import (CustomUserSerializer, IngredientsSerializer,
                           RecipeSerializer, TagsSerializer)
 #from .permissions import IsOwnerOrReadOnly
