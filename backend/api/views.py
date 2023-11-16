@@ -10,7 +10,7 @@ from .serializers import (CustomUserSerializer, IngredientsSerializer,
 #from .permissions import IsOwnerOrReadOnly
 
 
-class CustomUserViewSet(viewsets.ModelViewSet):
+class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = CustomUserSerializer
     permission_classes = (IsAuthenticatedOrReadOnly, )
