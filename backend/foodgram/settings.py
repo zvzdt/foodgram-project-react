@@ -21,8 +21,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'colorfield',
     'djoser',
-    'recipes.apps.RecipesConfig',
-    'api.apps.ApiConfig',
+    'recipes',
+    'api',
     'django_filters',
 ]
 
@@ -117,3 +117,8 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 10,
 
 }
+
+DJOSER = {
+    'LOGIN_FIELD': 'email',
+    'SERIALIZERS': {
+        "user_create": "api.serializers.UserCreateSerializer", }, }
