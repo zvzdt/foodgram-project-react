@@ -5,25 +5,25 @@ class User(AbstractUser):
     username = models.CharField(
         unique=True,
         blank=False,
-        max_length=200,
+        max_length=150,
         verbose_name='имя пользователя'
     )
     first_name = models.CharField(
         unique=True,
         blank=False,
-        max_length=200,
+        max_length=150,
         verbose_name='ваше имя'
     )
     last_name = models.CharField(
         unique=True,
         blank=False,
-        max_length=200,
+        max_length=150,
         verbose_name='фамилия'
     )
     email = models.EmailField( 
         unique=True,
         blank=False,
-        max_length=200,
+        max_length=254,
         verbose_name='email aдрес'
     )
 

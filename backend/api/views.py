@@ -1,19 +1,36 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets, filters, mixins
+from rest_framework.response import Response
+from rest_framework import status
 from rest_framework.permissions import (IsAuthenticated,
                                         IsAuthenticatedOrReadOnly, AllowAny)
 from rest_framework.pagination import LimitOffsetPagination
 
-from recipes.models import Ingredients, Recipe, Tags#, User
+from recipes.models import Ingredients, Recipe, Tags
 from users.models import User
-from .serializers import (CustomUserSerializer, IngredientsSerializer,
+from .serializers import (UserSerializer, IngredientsSerializer,
                           RecipeSerializer, TagsSerializer)
 #from .permissions import IsOwnerOrReadOnly
 
 
+class UserRegistrationViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
+    serializer_class = UserSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            self.perform_create(serializer)
+            headers = self.get_success_headers(serializer.data)
+            return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def perform_create(self, serializer):
+        serializer.save()
+
+
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
-    serializer_class = CustomUserSerializer
+    serializer_class = UserSerializer
     permission_classes = (IsAuthenticatedOrReadOnly, )
 
 
