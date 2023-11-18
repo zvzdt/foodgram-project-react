@@ -1,9 +1,7 @@
 from django.db import models
-#from django.contrib.auth import get_user_model
 from colorfield.fields import ColorField
 from users.models import User
 
-#User = get_user_model()
 
 class Tags(models.Model):
     name = models.CharField(
@@ -58,9 +56,9 @@ class Recipe(models.Model):
     )
     ingredients = models.ManyToManyField(
         Ingredients,
+        through='RecipeIngredients',
         related_name='recipes',
         verbose_name='ингредиенты',
-        blank=False
         )
     tags = models.ManyToManyField(
         Tags,
@@ -90,3 +88,29 @@ class Recipe(models.Model):
 
     def __str__(self):
         return self.name
+
+    
+class RecipeIngredients(models.Model):
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        related_name='ingredient',
+        verbose_name='рецепт'
+    )
+    ingredient = models.ForeignKey(
+        Ingredients,
+        on_delete=models.CASCADE,
+        related_name='recipe_ingredients',
+        verbose_name='ингредиент'
+    )
+    quantity = models.PositiveSmallIntegerField(
+        verbose_name='количество',
+        blank=False
+    )
+
+    class Meta:
+        verbose_name = 'ингредиент'
+        verbose_name_plural = 'ингредиенты'
+
+    def __str__(self):
+        return f'{self.quantity} {self.ingredient}'
