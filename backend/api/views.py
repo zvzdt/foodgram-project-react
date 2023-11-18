@@ -6,10 +6,10 @@ from rest_framework.permissions import (IsAuthenticated,
                                         IsAuthenticatedOrReadOnly, AllowAny)
 from rest_framework.pagination import LimitOffsetPagination
 
-from recipes.models import Ingredients, Recipe, Tags
+from recipes.models import Ingredients, Recipe, RecipeIngredients, Tags
 from users.models import User
 from .serializers import (UserSerializer, IngredientsSerializer,
-                          RecipeSerializer, TagsSerializer)
+                          RecipeSerializer, RecipeIngredientsSerializer, TagsSerializer)
 #from .permissions import IsOwnerOrReadOnly
 
 
@@ -38,6 +38,12 @@ class IngredientsViewSet(viewsets.ModelViewSet):
     queryset = Ingredients.objects.all()
     serializer_class = IngredientsSerializer
     permission_classes = (AllowAny, )
+
+
+class RecipeIngredientsViewSet(viewsets.ModelViewSet):
+    queryset = RecipeIngredients.objects.all()
+    serializer_class = RecipeIngredientsSerializer
+    permission_classes = (IsAuthenticatedOrReadOnly, )
 
 
 class TagsViewSet(viewsets.ModelViewSet):
