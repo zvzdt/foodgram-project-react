@@ -52,8 +52,18 @@ class TagsViewSet(viewsets.ModelViewSet):
     permission_classes = (AllowAny, )
 
 
+# class RecipeFilter(filters.FilterSet):
+#     tags = filters.CharFilter(field_name='tags__name')
+
+#     class Meta:
+#         model = Recipe
+#         fields = ['tags']
+
+
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
     permission_classes = (IsAuthenticatedOrReadOnly, )
     pagination_class = LimitOffsetPagination
+    # filter_backends = (filters.DjangoDilterBackend,)
+    # filterset_class = RecipeFilter
