@@ -3,7 +3,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from rest_framework import routers
 
-from .views import (UserViewSet, IngredientsViewSet, 
+from .views import (UsersListViewSet, UserProfileViewSet, CurrentUserViewSet, IngredientsViewSet, 
                     RecipeViewSet, TagsViewSet) 
 
 
@@ -11,7 +11,9 @@ app_name = 'api'
 
 
 router_v1 = routers.DefaultRouter()
-router_v1.register('users', UserViewSet, basename='users')
+router_v1.register('users', UsersListViewSet, basename='users')
+router_v1.register(r'users/{id}/', UserProfileViewSet, basename='user_profile')
+router_v1.register('users/me/', CurrentUserViewSet, basename='me')
 router_v1.register('ingredients', IngredientsViewSet, basename='ingredients')
 router_v1.register('tags', TagsViewSet, basename='tags')
 router_v1.register('recipes', RecipeViewSet, basename='recipes')
