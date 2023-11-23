@@ -1,7 +1,6 @@
 from django.core.files.base import ContentFile
 from rest_framework import serializers
 from drf_extra_fields.fields import Base64ImageField
-#from djoser.serializers import UserSerializer
 
 from recipes.models import Ingredients, Recipe, RecipeIngredients, Tags
 from users.models import User
@@ -58,7 +57,15 @@ class ChangePasswordSerializer(serializers.ModelSerializer):
         )
     
     def validate(self, data):
+        user = self.context['request'].user
+        if not user.check_password(data['current_password']):
+            raise serializers.ValidationError("Current password is incorrect")
         return data
+    
+    def update(self, instance, validated_data):
+        instance.set_password(validated_data['new_password'])
+        instance.save()
+        return instance
         
 
 class IngredientsSerializer(serializers.ModelSerializer):
