@@ -11,19 +11,19 @@ from .views import (ChangePasswordViewSet, UserCreateViewSet,
 app_name = 'api'
 
 
-router_v1 = routers.DefaultRouter()
-router_v1.register(r'users', UsersListViewSet, basename='users')
-router_v1.register(r'users', UserCreateViewSet, basename='user-create')
-router_v1.register(r'users', UserProfileViewSet, basename='user-profile')
-router_v1.register(r'users', ChangePasswordViewSet, basename='change-password')
-router_v1.register('ingredients', IngredientsViewSet, basename='ingredients')
-router_v1.register('tags', TagsViewSet, basename='tags')
-router_v1.register('recipes', RecipeViewSet, basename='recipes')
+router = routers.DefaultRouter()
+router.register(r'users', UsersListViewSet, basename='users-list')
+router.register(r'users-create', UserCreateViewSet, basename='user-create')
+router.register(r'user-profile', UserProfileViewSet, basename='user-profile')
+router.register(r'change-password', ChangePasswordViewSet, basename='change-password')
+router.register('ingredients', IngredientsViewSet, basename='ingredients')
+router.register('tags', TagsViewSet, basename='tags')
+router.register('recipes', RecipeViewSet, basename='recipes')
 
 urlpatterns = [
-    path('v1/', include(router_v1.urls)),
-    path('v1/', include('djoser.urls')),
-    path('v1/', include('djoser.urls.jwt')),
+    path('', include(router.urls)),
+    path('', include('djoser.urls')),
+    path('auth/', include('djoser.urls.jwt')),
 ]
 
 if settings.DEBUG:

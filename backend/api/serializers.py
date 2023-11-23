@@ -10,26 +10,26 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
-            'id', 
-            'username', 
-            'first_name', 
-            'last_name', 
-            'email', 
+            'id',
+            'username',
+            'first_name',
+            'last_name',
+            'email',
             'password'
         )
 
 
 class UserCreateSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
-    
+
     class Meta:
         model = User
         fields = (
-            'id', 
-            'username', 
-            'first_name', 
-            'last_name', 
-            'email', 
+            'id',
+            'username',
+            'first_name',
+            'last_name',
+            'email',
             'password'
         )
 
@@ -43,7 +43,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
         user.set_password(validated_data['password'])
         user.save()
         return user
-    
+
 
 class ChangePasswordSerializer(serializers.ModelSerializer):
     new_password = serializers.CharField(required=True)
@@ -55,21 +55,21 @@ class ChangePasswordSerializer(serializers.ModelSerializer):
             'new_password',
             'current_password',
         )
-    
+
     def validate(self, data):
         user = self.context['request'].user
         if not user.check_password(data['current_password']):
             raise serializers.ValidationError("Current password is incorrect")
         return data
-    
+
     def update(self, instance, validated_data):
         instance.set_password(validated_data['new_password'])
         instance.save()
         return instance
-        
+
 
 class IngredientsSerializer(serializers.ModelSerializer):
-    
+
     class Meta:
         model = Ingredients
         fields = '__all__'
@@ -82,7 +82,7 @@ class TagsSerializer(serializers.ModelSerializer):
         model = Tags
         fields = '__all__'
         read_only_fields = ('id',)
- 
+
 
 class RecipeIngredientsSerializer(serializers.ModelSerializer):
     class Meta:
@@ -100,5 +100,3 @@ class RecipeSerializer(serializers.ModelSerializer):
         model = Recipe
         fields = '__all__'
         read_only_fields = ('id',)
-
-

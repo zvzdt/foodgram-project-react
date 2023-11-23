@@ -3,6 +3,7 @@ from rest_framework import viewsets, filters, mixins
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework import status
+from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import (IsAuthenticated,
                                         IsAuthenticatedOrReadOnly, AllowAny)
 from rest_framework.pagination import LimitOffsetPagination
@@ -40,11 +41,21 @@ class UserCreateViewSet(viewsets.ModelViewSet):
 
 
 class UserProfileViewSet(viewsets.ModelViewSet):
-    serializer_class = UserSerializer
-    permission_classes = [IsAuthenticated]
+        serializer_class = UserSerializer
+        permission_classes = [IsAuthenticated]
+        authentication_classes = [TokenAuthentication]
 
-    def get_queryset(self):
-        return User.objects.all()
+        def get_queryset(self):
+            if not self.request.user.is_authenticated:
+                raise AuthenticationFailed()
+            return User.objects.all()
+
+        def retrieve(self, request, *args, **kwargs):
+            instance = self.get_object()
+            if instance != request.user:
+                return Response(status=status.HTTP_403_FORBIDDEN)
+            serializer = self.get_serializer(instance)
+            return Response(serializer.data)
 
 
 class ChangePasswordViewSet(viewsets.ModelViewSet):
