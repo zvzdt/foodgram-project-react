@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.validators import RegexValidator
 from colorfield.fields import ColorField
 from users.models import User
 
@@ -17,7 +18,10 @@ class Tags(models.Model):
     slug = models.SlugField(
         max_length=200, 
         unique=True, 
-        null=True
+        null=True,
+        validators=[
+            RegexValidator(r'^[-a-zA-Z0-9_]+$'),
+        ],
         )
     class Meta:    
         verbose_name = 'Тэг'

@@ -26,6 +26,7 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     pagination_class = LimitOffsetPagination
+    permission_classes = (AllowAny, )
 
     @action(detail=False, methods=['post'])
     def create_user(self, request):
@@ -35,7 +36,7 @@ class UserViewSet(viewsets.ModelViewSet):
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
-    @action(detail=False, methods=['get'], permission_classes=(IsAuthenticated,))
+    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
     def profile(self, request):
         if not request.user.is_authenticated:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
@@ -105,3 +106,35 @@ class RecipeViewSet(viewsets.ModelViewSet):
     pagination_class = LimitOffsetPagination
     # filter_backends = (filters.DjangoDilterBackend,)
     # filterset_class = RecipeFilter
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
+
+    @action(detail=False, methods=['post'])
+    def create_recipe(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(author=self.request.user)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    
+    @action(detail=True, methods=['patch'])
+    def update_recipe(self, request, pk=None):
+        instance = self.get_object()
+        if instance.author != request.user:
+            return Response({'detail': 'You do not have permission to perform this action.'}, status=status.HTTP_403_FORBIDDEN)
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data)
+
+    
+    @action(detail=True, methods=['delete'])
+    def delete_recipe(self, request, pk=None):
+        instance = self.get_object()
+        if instance.author != request.user:
+            return Response({'detail': 'You do not have permission to perform this action.'}, status=status.HTTP_403_FORBIDDEN)
+        instance.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+
