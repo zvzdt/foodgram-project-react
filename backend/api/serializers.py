@@ -15,7 +15,6 @@ class UserSerializer(serializers.ModelSerializer):
             'first_name',
             'last_name',
             'email',
-            'password'
         )
 
 
@@ -32,16 +31,16 @@ class UserCreateSerializer(serializers.ModelSerializer):
             'email',
             'password'
         )
+    
+    def validate(self, attrs):
+        required_fields = ['username', 'last_name', 'email', 'password']
+        for field in required_fields:
+            if not attrs.get(field):
+                raise serializers.ValidationError(f'{field.capitalize()} обязательное поле')
+        return attrs
 
     def create(self, validated_data):
-        user = User.objects.create(
-            username=validated_data['username'],
-            first_name=validated_data['first_name'],
-            last_name=validated_data['last_name'],
-            email=validated_data['email']
-        )
-        # user.set_password(validated_data['password'])
-        user.save()
+        user = User.objects.create_user(**validated_data)
         return user
 
 
@@ -59,7 +58,7 @@ class ChangePasswordSerializer(serializers.ModelSerializer):
     def validate(self, data):
         user = self.context['request'].user
         if not user.check_password(data['current_password']):
-            raise serializers.ValidationError("Current password is incorrect")
+            raise serializers.ValidationError("Неверный пароль")
         return data
 
     def update(self, instance, validated_data):
