@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import (
-    IsAuthenticated, IsAuthenticatedOrReadOnly, AllowAny
+    IsAuthenticated, IsAuthenticatedOrReadOnly, AllowAny 
 )
 from rest_framework.pagination import LimitOffsetPagination
 
@@ -28,6 +28,11 @@ class UserViewSet(viewsets.ModelViewSet):
     pagination_class = LimitOffsetPagination
     permission_classes = (AllowAny, )
 
+    def get_serializer_class(self):
+        if self.action == 'list' or self.action == 'retrieve':
+            return UserSerializer
+        return UserCreateSerializer
+
     @action(detail=False, methods=['post'])
     def create_user(self, request):
         serializer = UserCreateSerializer(data=request.data)
@@ -43,28 +48,12 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer = UserSerializer(request.user)
         return Response(serializer.data)
 
-class UserPasswordViewSet(viewsets.GenericViewSet):
-    queryset = User.objects.all()
-    serializer_class = ChangePasswordSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_object(self):
-        return self.request.user
-
-    @action(detail=False, methods=['put'])
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
     def change_password(self, request):
-        user = self.get_object()
-        serializer = self.get_serializer(data=request.data)
-
+        serializer = ChangePasswordSerializer(request.user, data=request.data)
         if serializer.is_valid():
-            current_password = serializer.validated_data.get(
-                'current_password')
-            new_password = serializer.validated_data.get('new_password')
-            if not user.check_password(current_password):
-                return Response({'detail': 'wrong password'}, status=status.HTTP_400_BAD_REQUEST)
-            user.set_password(new_password)
-            user.save()
-            return Response({'detail': 'password updated'}, status=status.HTTP_200_OK)
+            serializer.save()
+            return Response(status=status.HTTP_204_NO_CONTENT)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 

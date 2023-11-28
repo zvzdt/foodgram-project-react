@@ -3,7 +3,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from rest_framework import routers
 
-from .views import (UserViewSet, UserPasswordViewSet, IngredientsViewSet,
+from .views import (UserViewSet, IngredientsViewSet,
                     RecipeViewSet, TagsViewSet)
 
 
@@ -12,7 +12,7 @@ app_name = 'api'
 
 router = routers.DefaultRouter()
 router.register('users', UserViewSet, basename='user-password')
-router.register(r'users/set_password', UserPasswordViewSet, basename='user-password')
+# router.register(r'users/set_password', UserPasswordViewSet, basename='user-password')
 router.register('ingredients', IngredientsViewSet, basename='ingredients')
 router.register('tags', TagsViewSet, basename='tags')
 router.register('recipes', RecipeViewSet, basename='recipes')
