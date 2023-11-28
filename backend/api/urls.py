@@ -3,23 +3,24 @@ from django.conf import settings
 from django.conf.urls.static import static
 from rest_framework import routers
 
-from .views import (UserViewSet, IngredientsViewSet, 
-                    RecipeViewSet, TagsViewSet) 
+from .views import (UserViewSet, UserPasswordViewSet, IngredientsViewSet,
+                    RecipeViewSet, TagsViewSet)
 
 
 app_name = 'api'
 
 
-router_v1 = routers.DefaultRouter()
-router_v1.register('users', UserViewSet, basename='users')
-router_v1.register('ingredients', IngredientsViewSet, basename='ingredients')
-router_v1.register('tags', TagsViewSet, basename='tags')
-router_v1.register('recipes', RecipeViewSet, basename='recipes')
+router = routers.DefaultRouter()
+router.register('users', UserViewSet, basename='user-password')
+router.register(r'users/set_password', UserPasswordViewSet, basename='user-password')
+router.register('ingredients', IngredientsViewSet, basename='ingredients')
+router.register('tags', TagsViewSet, basename='tags')
+router.register('recipes', RecipeViewSet, basename='recipes')
 
 urlpatterns = [
-    path('v1/', include(router_v1.urls)),
-    path('v1/', include('djoser.urls')),
-    path('v1/', include('djoser.urls.jwt')),
+    path('', include(router.urls)),
+    path('auth/', include('djoser.urls')),
+    path('auth/', include('djoser.urls.authtoken')),
 ]
 
 if settings.DEBUG:

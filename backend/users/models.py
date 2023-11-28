@@ -33,9 +33,6 @@ class User(AbstractUser):
     password = models.CharField(
         max_length=150,
         blank=False,
-        validators=[
-            RegexValidator(r'^[\w.@+-]+\Z'),
-        ],
     )
 
     class Meta:
