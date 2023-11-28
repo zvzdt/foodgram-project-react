@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.validators import RegexValidator
 from colorfield.fields import ColorField
 from users.models import User
 
@@ -17,7 +18,10 @@ class Tags(models.Model):
     slug = models.SlugField(
         max_length=200, 
         unique=True, 
-        null=True
+        null=True,
+        validators=[
+            RegexValidator(r'^[-a-zA-Z0-9_]+$'),
+        ],
         )
     class Meta:    
         verbose_name = 'Тэг'
@@ -40,6 +44,7 @@ class Ingredients(models.Model):
         )
 
     class Meta:
+        ordering = ('name',)
         verbose_name = 'Ингредиент'
         verbose_name_plural = 'Ингредиенты'
 
@@ -103,7 +108,7 @@ class RecipeIngredients(models.Model):
         related_name='recipe_ingredients',
         verbose_name='ингредиент'
     )
-    quantity = models.PositiveSmallIntegerField(
+    amount = models.PositiveSmallIntegerField(
         verbose_name='количество',
         blank=False
     )
@@ -113,4 +118,4 @@ class RecipeIngredients(models.Model):
         verbose_name_plural = 'ингредиенты'
 
     def __str__(self):
-        return f'{self.quantity} {self.ingredient}'
+        return f'{self.amount} {self.ingredient}'
