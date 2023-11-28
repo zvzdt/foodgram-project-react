@@ -3,7 +3,7 @@ from rest_framework import serializers
 from drf_extra_fields.fields import Base64ImageField
 
 from recipes.models import Ingredients, Recipe, RecipeIngredients, Tags
-from users.models import User
+from users.models import User, Subscription
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -15,6 +15,7 @@ class UserSerializer(serializers.ModelSerializer):
             'first_name',
             'last_name',
             'email',
+            'is_subscribed',
         )
 
 
@@ -65,7 +66,15 @@ class ChangePasswordSerializer(serializers.ModelSerializer):
         instance.set_password(validated_data['new_password'])
         instance.save()
         return instance
+   
 
+class SubscriptionSerializer(serializers.ModelSerializer):
+    user = UserSerializer()
+    author = UserSerializer()
+    
+    class Meta:
+        model = Subscription
+        fields = ['id', 'user', 'author']
 
 class IngredientsSerializer(serializers.ModelSerializer):
 
@@ -79,7 +88,12 @@ class TagsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Tags
-        fields = '__all__'
+        fields = (
+            'id',
+            'name',
+            'color',
+            'slug',
+        )
         read_only_fields = ('id',)
 
 
