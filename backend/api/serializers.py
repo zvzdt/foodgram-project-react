@@ -29,7 +29,6 @@ class UserSerializer(UserSerializer):
         )
     
 
-
 class UserCreateSerializer(UserCreateSerializer):
     password = serializers.CharField(write_only=True)
 
@@ -88,9 +87,7 @@ class SubscriptionSerializer(serializers.ModelSerializer):
     recipe_count = serializers.SerializerMethodField(
         method_name='get_recipe_count'
     )
-    is_subscribed = serializers.SerializerMethodField(
-        method_name='get_subscribed'
-    )
+    is_subscribed = serializers.SerializerMethodField()
 
     def validate(self, obj):
         author = self.instance
@@ -105,12 +102,11 @@ class SubscriptionSerializer(serializers.ModelSerializer):
             )
         return obj
 
-    def get_subscribed(self, obj):
+    def get_is_subscribed(self, obj):
         request = self.context.get('request')
         if request and not request.user.is_anonymous:
             return Subscription.objects.filter(user=request.user,
                                                author=obj).exists()
-        return False
 
     def get_recipe(self, obj):
         request = self.context.get('request')
@@ -118,7 +114,7 @@ class SubscriptionSerializer(serializers.ModelSerializer):
         recipes = obj.recipes.all()
         if limit:
             recipes = recipes[:int(limit)]
-        serialized_recipes = SubscribeSerializer(recipes, many=True).data
+        serialized_recipes = ShortCutRecipeSerializer(recipes, many=True).data
         return serialized_recipes
 
     def get_recipe_count(self, obj):
@@ -167,3 +163,11 @@ class RecipeSerializer(serializers.ModelSerializer):
         model = Recipe
         fields = '__all__'
         read_only_fields = ('id',)
+
+
+class ShortCutRecipeSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Recipe
+        fields = ('id', 'name', 'image', 'cooking_time')
+        read_only_fields = ('id', 'name', 'image', 'cooking_time')

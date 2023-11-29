@@ -69,9 +69,6 @@ class Subscription(models.Model):
         verbose_name = 'Подписка'
         verbose_name_plural = 'Подписки'
     
-    def clean(self):
-        if self.user == self.author:
-            raise ValidationError('Пользователь не может подписаться на самого себя')
 
     def __str__(self):
         return f'{self.user} {self.author}'
