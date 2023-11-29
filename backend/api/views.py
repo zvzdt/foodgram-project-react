@@ -14,11 +14,11 @@ from recipes.models import (
     Ingredients, Recipe, RecipeIngredients, Tags
 )
 from recipes.filters import IngredientSearchFilter
-from users.models import User
+from users.models import User, Subscription
 from .serializers import (
     ChangePasswordSerializer, UserCreateSerializer, UserSerializer,
     IngredientsSerializer, RecipeSerializer, RecipeIngredientsSerializer,
-    TagsSerializer
+    SubscriptionSerializer, TagsSerializer
 )
 
 
@@ -26,7 +26,7 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     pagination_class = LimitOffsetPagination
-    # permission_classes = (AllowAny, )
+    permission_classes = (AllowAny, )
 
     def get_serializer_class(self):
         if self.action == 'list' or self.action == 'retrieve':
@@ -55,6 +55,37 @@ class UserViewSet(viewsets.ModelViewSet):
             serializer.save()
             return Response(status=status.HTTP_204_NO_CONTENT)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    @action(detail=True, methods=['get'], permission_classes=[IsAuthenticated])
+    def subscriptions(self, request, pk=None):
+        user = self.get_object()
+        subscriptions = user.is_following.all()
+        page = self.paginate_queryset(subscriptions)
+        if page is not None:
+            serializer = SubscriptionSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = SubscriptionSerializer(subscriptions, many=True)
+        return Response(serializer.data)
+
+    @action(detail=True, methods=['post', 'delete'], permission_classes=[IsAuthenticated])
+    def subscribe(self, request, pk=None):
+        author = self.get_object()
+        subscription = get_object_or_404(Subscription, user=request.user, author=author)
+
+        if request.method == 'POST':
+            if subscription is None:
+                subscription = Subscription(user=request.user, author=author)
+                subscription.full_clean()
+                subscription.save()
+                return Response(status=status.HTTP_201_CREATED)
+            else:
+                return Response(status=status.HTTP_400_BAD_REQUEST)
+        elif request.method == 'DELETE':
+            if subscription is not None:
+                subscription.delete()
+                return Response(status=status.HTTP_204_NO_CONTENT)
+            else:
+                return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
 class IngredientsViewSet(viewsets.ModelViewSet):
