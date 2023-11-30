@@ -16,15 +16,15 @@ from recipes.models import (
 from recipes.filters import IngredientSearchFilter
 from users.models import User, Subscription
 from .serializers import (
-    ChangePasswordSerializer, UserCreateSerializer, UserSerializer,
-    IngredientsSerializer, RecipeSerializer, RecipeIngredientsSerializer,
+    UserCreateSerializer, UserSerializer,
+    IngredientsSerializer, RecipeSerializer,
     SubscriptionSerializer, TagsSerializer
 )
 
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
-    serializer_class = UserCreateSerializer
+    serializer_class = UserSerializer
     pagination_class = LimitOffsetPagination
     permission_classes = (AllowAny, )
 
@@ -48,14 +48,6 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer = UserSerializer(request.user)
         return Response(serializer.data)
 
-    @action(detail=False, methods=['post'],
-            permission_classes=(IsAuthenticated,))
-    def set_password(self, request):
-        serializer = ChangePasswordSerializer(request.user, data=request.data)
-        if serializer.is_valid(raise_exception=True):
-            serializer.save()
-        return Response({'detail': 'Пароль изменен'},
-                        status=status.HTTP_204_NO_CONTENT)
     
     @action(detail=True, methods=['get'], permission_classes=[IsAuthenticated])
     def subscriptions(self, request):
@@ -95,29 +87,12 @@ class IngredientsViewSet(viewsets.ModelViewSet):
     permission_classes = (AllowAny, )
     filter_backends = [IngredientSearchFilter]
 
-    @action(detail=False, permission_classes=[IsAuthenticated])
-    def action(self, request):
-        raise NotImplementedError(777)
-
-
-class RecipeIngredientsViewSet(viewsets.ModelViewSet):
-    queryset = RecipeIngredients.objects.all()
-    serializer_class = RecipeIngredientsSerializer
-    permission_classes = (IsAuthenticatedOrReadOnly, )
-
 
 class TagsViewSet(viewsets.ModelViewSet):
     queryset = Tags.objects.all()
     serializer_class = TagsSerializer
-    permission_classes = (IsAuthenticatedOrReadOnly, )
-
-
-# class RecipeFilter(filters.FilterSet):
-#     tags = filters.CharFilter(field_name='tags__name')
-
-#     class Meta:
-#         model = Recipe
-#         fields = ['tags']
+    permission_classes = (AllowAny, )
+    pagination_class = None
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
@@ -127,6 +102,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     pagination_class = LimitOffsetPagination
     # filter_backends = (filters.DjangoDilterBackend,)
     # filterset_class = RecipeFilter
+
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
@@ -142,7 +118,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def update_recipe(self, request, pk=None):
         instance = self.get_object()
         if instance.author != request.user:
-            return Response({'detail': 'You do not have permission to perform this action.'}, status=status.HTTP_403_FORBIDDEN)
+            return Response({'detail': 'вы не явдяетесь автором рецепта.'}, status=status.HTTP_403_FORBIDDEN)
         serializer = self.get_serializer(instance, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)

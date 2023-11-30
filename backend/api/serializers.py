@@ -54,29 +54,7 @@ class UserCreateSerializer(UserCreateSerializer):
         user = User.objects.create_user(**validated_data)
         return user
 
-
-class ChangePasswordSerializer(serializers.ModelSerializer):
-    new_password = serializers.CharField(required=True)
-    current_password = serializers.CharField(required=True)
-
-    class Meta:
-        model = User
-        fields = (
-            'new_password',
-            'current_password',
-        )
-
-    def validate(self, data):
-        user = self.context['request'].user
-        if not user.check_password(data['current_password']):
-            raise serializers.ValidationError("Неверный пароль")
-        return data
-
-    def update_password(self, instance, validated_data):
-        instance.set_password(validated_data['new_password'])
-        instance.save()
-        return instance
-   
+ 
 
 class SubscriptionSerializer(serializers.ModelSerializer):
     email = serializers.ReadOnlyField()
@@ -126,14 +104,6 @@ class SubscriptionSerializer(serializers.ModelSerializer):
                   'is_subscribed', 'recipes', 'recipe_count')
 
 
-class IngredientsSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Ingredients
-        fields = '__all__'
-        read_only_fields = ('id',)
-
-
 class TagsSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -147,22 +117,56 @@ class TagsSerializer(serializers.ModelSerializer):
         read_only_fields = ('id',)
 
 
+class IngredientsSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Ingredients
+        fields = '__all__'
+        read_only_fields = ('id',)
+
+
+
 class RecipeIngredientsSerializer(serializers.ModelSerializer):
+    id = serializers.ReadOnlyField(source='ingredients.id')
+    name = serializers.ReadOnlyField(source='ingredients.name')
+    measurement_units = serializers.ReadOnlyField(
+        source='ingredients.measurement_units')
+
     class Meta:
         model = RecipeIngredients
-        fields = '__all__'
+        fields = ('id', 'name', 'measurement_units', 'amount')
 
 
 class RecipeSerializer(serializers.ModelSerializer):
     author = UserSerializer(read_only=True)
-    ingredients = IngredientsSerializer(read_only=True, many=True)
     tags = TagsSerializer(read_only=True, many=True)
     image = Base64ImageField(allow_null=False)
 
+    ingredients = RecipeIngredientsSerializer(
+        source='ingredient',
+        many=True,
+        read_only=True,
+    )
+    is_favorited = serializers.SerializerMethodField()
+    is_in_shopping_cart = serializers.SerializerMethodField()
+
     class Meta:
         model = Recipe
-        fields = '__all__'
-        read_only_fields = ('id',)
+        fields = ('id', 'tags', 'author', 'ingredients', 'is_favorited',
+                  'is_in_shopping_cart', 'name', 'image', 'text',
+                  'cooking_time')
+
+    def get_is_favorited(self, obj):
+        user = self.context.get('request').user
+        if user.is_anonymous:
+            return False
+        return Recipe.objects.filter(favorites__user=user, id=obj.id).exists()
+
+    def get_is_in_shopping_cart(self, obj):
+        user = self.context.get('request').user
+        if user.is_anonymous:
+            return False
+        return Recipe.objects.filter(cart__user=user, id=obj.id).exists()
 
 
 class ShortCutRecipeSerializer(serializers.ModelSerializer):
