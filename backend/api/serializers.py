@@ -21,10 +21,10 @@ class UserSerializer(UserSerializer):
         model = User
         fields = (
             'id',
+            'email',
             'username',
             'first_name',
             'last_name',
-            'email',
             'is_subscribed',
         )
     
@@ -72,7 +72,7 @@ class ChangePasswordSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Неверный пароль")
         return data
 
-    def update(self, instance, validated_data):
+    def update_password(self, instance, validated_data):
         instance.set_password(validated_data['new_password'])
         instance.save()
         return instance

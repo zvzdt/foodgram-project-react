@@ -29,11 +29,6 @@ class User(AbstractUser):
         max_length=254,
         verbose_name='email aдрес'
     )
-    password = models.CharField(
-        max_length=150,
-        blank=False,
-        null=False,
-    )
     is_subscribed = models.ManyToManyField(
         to='self',
         through='Subscription',

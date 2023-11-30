@@ -24,7 +24,7 @@ from .serializers import (
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
-    serializer_class = UserSerializer
+    serializer_class = UserCreateSerializer
     pagination_class = LimitOffsetPagination
     permission_classes = (AllowAny, )
 
@@ -48,17 +48,18 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer = UserSerializer(request.user)
         return Response(serializer.data)
 
-    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
+    @action(detail=False, methods=['post'],
+            permission_classes=(IsAuthenticated,))
     def set_password(self, request):
         serializer = ChangePasswordSerializer(request.user, data=request.data)
         if serializer.is_valid(raise_exception=True):
             serializer.save()
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'detail': 'Пароль изменен'},
+                        status=status.HTTP_204_NO_CONTENT)
     
     @action(detail=True, methods=['get'], permission_classes=[IsAuthenticated])
-    def subscriptions(self, request, pk=None):
-        user = self.get_object()
+    def subscriptions(self, request):
+        user = request.user
         subscriptions = user.is_following.all()
         page = self.paginate_queryset(subscriptions)
         if page is not None:
