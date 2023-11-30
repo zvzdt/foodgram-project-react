@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import (
-    IsAuthenticated, IsAuthenticatedOrReadOnly, AllowAny
+    IsAuthenticated, IsAuthenticatedOrReadOnly, AllowAny 
 )
 from rest_framework.pagination import LimitOffsetPagination
 
@@ -14,19 +14,24 @@ from recipes.models import (
     Ingredients, Recipe, RecipeIngredients, Tags
 )
 from recipes.filters import IngredientSearchFilter
-from users.models import User
+from users.models import User, Subscription
 from .serializers import (
     ChangePasswordSerializer, UserCreateSerializer, UserSerializer,
     IngredientsSerializer, RecipeSerializer, RecipeIngredientsSerializer,
-    TagsSerializer
+    SubscriptionSerializer, TagsSerializer
 )
 
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
-    serializer_class = UserSerializer
+    serializer_class = UserCreateSerializer
     pagination_class = LimitOffsetPagination
     permission_classes = (AllowAny, )
+
+    def get_serializer_class(self):
+        if self.action == 'list' or self.action == 'retrieve':
+            return UserSerializer
+        return UserCreateSerializer
 
     @action(detail=False, methods=['post'])
     def create_user(self, request):
@@ -37,35 +42,51 @@ class UserViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
     @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
-    def profile(self, request):
+    def me(self, request):
         if not request.user.is_authenticated:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         serializer = UserSerializer(request.user)
         return Response(serializer.data)
 
-class UserPasswordViewSet(viewsets.GenericViewSet):
-    queryset = User.objects.all()
-    serializer_class = ChangePasswordSerializer
-    permission_classes = [IsAuthenticated]
+    @action(detail=False, methods=['post'],
+            permission_classes=(IsAuthenticated,))
+    def set_password(self, request):
+        serializer = ChangePasswordSerializer(request.user, data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+        return Response({'detail': 'Пароль изменен'},
+                        status=status.HTTP_204_NO_CONTENT)
+    
+    @action(detail=True, methods=['get'], permission_classes=[IsAuthenticated])
+    def subscriptions(self, request):
+        user = request.user
+        subscriptions = user.is_following.all()
+        page = self.paginate_queryset(subscriptions)
+        if page is not None:
+            serializer = SubscriptionSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = SubscriptionSerializer(subscriptions, many=True)
+        return Response(serializer.data)
 
-    def get_object(self):
-        return self.request.user
+    @action(detail=True, methods=['post', 'delete'], permission_classes=[IsAuthenticated])
+    def subscribe(self, request, pk=None):
+        author = self.get_object()
+        subscription = get_object_or_404(Subscription, user=request.user, author=author)
 
-    @action(detail=False, methods=['put'])
-    def change_password(self, request):
-        user = self.get_object()
-        serializer = self.get_serializer(data=request.data)
-
-        if serializer.is_valid():
-            current_password = serializer.validated_data.get(
-                'current_password')
-            new_password = serializer.validated_data.get('new_password')
-            if not user.check_password(current_password):
-                return Response({'detail': 'wrong password'}, status=status.HTTP_400_BAD_REQUEST)
-            user.set_password(new_password)
-            user.save()
-            return Response({'detail': 'password updated'}, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        if request.method == 'POST':
+            if subscription is None:
+                subscription = Subscription(user=request.user, author=author)
+                subscription.full_clean()
+                subscription.save()
+                return Response(status=status.HTTP_201_CREATED)
+            else:
+                return Response(status=status.HTTP_400_BAD_REQUEST)
+        elif request.method == 'DELETE':
+            if subscription is not None:
+                subscription.delete()
+                return Response(status=status.HTTP_204_NO_CONTENT)
+            else:
+                return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
 class IngredientsViewSet(viewsets.ModelViewSet):
@@ -88,7 +109,7 @@ class RecipeIngredientsViewSet(viewsets.ModelViewSet):
 class TagsViewSet(viewsets.ModelViewSet):
     queryset = Tags.objects.all()
     serializer_class = TagsSerializer
-    permission_classes = (AllowAny, )
+    permission_classes = (IsAuthenticatedOrReadOnly, )
 
 
 # class RecipeFilter(filters.FilterSet):
