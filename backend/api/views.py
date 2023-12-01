@@ -1,14 +1,15 @@
 from django.shortcuts import get_object_or_404
+from djoser.views import UserViewSet
 from rest_framework import (
     viewsets, filters, mixins, status, exceptions
 )
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.authentication import TokenAuthentication
+from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import (
     IsAuthenticated, IsAuthenticatedOrReadOnly, AllowAny 
 )
-from rest_framework.pagination import LimitOffsetPagination
 
 from recipes.models import (
     Ingredients, Recipe, RecipeIngredients, Tags
@@ -22,31 +23,16 @@ from .serializers import (
 )
 
 
-class UserViewSet(viewsets.ModelViewSet):
+class UserViewSet(UserViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     pagination_class = LimitOffsetPagination
     permission_classes = (AllowAny, )
 
-    def get_serializer_class(self):
-        if self.action == 'list' or self.action == 'retrieve':
-            return UserSerializer
-        return UserCreateSerializer
-
-    @action(detail=False, methods=['post'])
-    def create_user(self, request):
-        serializer = UserCreateSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
-
-    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
-    def me(self, request):
-        if not request.user.is_authenticated:
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
-        serializer = UserSerializer(request.user)
-        return Response(serializer.data)
+    def get_permissions(self):
+        if self.action == 'me':
+            self.permission_classes = (IsAuthenticated,)
+        return super().get_permissions()
 
     
     @action(detail=True, methods=['get'], permission_classes=[IsAuthenticated])
