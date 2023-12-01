@@ -17,8 +17,7 @@ from recipes.models import (
 from recipes.filters import IngredientSearchFilter
 from users.models import User, Subscription
 from .serializers import (
-    UserCreateSerializer, UserSerializer,
-    IngredientsSerializer, RecipeSerializer,
+    UserSerializer, IngredientsSerializer, RecipeSerializer,
     SubscriptionSerializer, TagsSerializer
 )
 
@@ -67,14 +66,14 @@ class UserViewSet(UserViewSet):
                 return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
-class IngredientsViewSet(viewsets.ModelViewSet):
+class IngredientsViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ingredients.objects.all()
     serializer_class = IngredientsSerializer
     permission_classes = (AllowAny, )
     filter_backends = [IngredientSearchFilter]
 
 
-class TagsViewSet(viewsets.ModelViewSet):
+class TagsViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Tags.objects.all()
     serializer_class = TagsSerializer
     permission_classes = (AllowAny, )
