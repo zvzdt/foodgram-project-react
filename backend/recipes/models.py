@@ -11,16 +11,14 @@ class Tags(models.Model):
         verbose_name='имя тэга',
         max_length=200,
         blank=False, 
-        unique=True
         )
     color = ColorField(
         verbose_name='цвет',
-        format='hex'
+        format='hex',
         )
     slug = models.SlugField(
         max_length=200, 
         unique=True, 
-        null=True,
         validators=[
             RegexValidator(r'^[-a-zA-Z0-9_]+$'),
         ],
@@ -49,6 +47,12 @@ class Ingredients(models.Model):
         ordering = ('name',)
         verbose_name = 'Ингредиент'
         verbose_name_plural = 'Ингредиенты'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['name', 'measurement_unit'],
+                name='name_measurement_unit'
+            )
+        ]
 
     def __str__(self):
         return self.name
@@ -142,7 +146,7 @@ class FavoriteList(models.Model):
         constraints = (
             UniqueConstraint(
                 fields=('user', 'recipe'),
-                name='unique favorite'
+                name='unique_favorite'
             ),
         )
 
@@ -169,7 +173,7 @@ class ShoppingCart(models.Model):
         constraints = (
             UniqueConstraint(
                 fields=('user', 'recipe'),
-                name='unique recipe in shopping cart'
+                name='unique_user_shoppingcart'
             ),
         )
 

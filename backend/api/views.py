@@ -18,7 +18,7 @@ from rest_framework.permissions import (
 from recipes.models import (
     FavoriteList, Ingredients, Recipe, RecipeIngredients, ShoppingCart, Tags
 )
-from recipes.filters import IngredientSearchFilter
+from recipes.filters import IngredientsFilter
 from users.models import User, Subscription
 from .serializers import (
     UserSerializer, IngredientsSerializer, RecipeSerializer, RecipeCreateSerializer,
@@ -74,9 +74,11 @@ class IngredientsViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ingredients.objects.all()
     serializer_class = IngredientsSerializer
     filter_backends = (DjangoFilterBackend,)
-    # filterset_class = IngredientFilter
-    permission_classes = (AllowAny,)
+    filterset_class = IngredientsFilter
+    search_fields = ['name']
+    permission_classes = [AllowAny]
     pagination_class = None
+
 
 
 class TagsViewSet(viewsets.ReadOnlyModelViewSet):
