@@ -8,7 +8,7 @@ SECRET_KEY = 'django-insecure-04c#@#qw19rva%$kkld*=!8rp(!4$h#d=755wxns^d+*wmn8-#
 
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -124,7 +124,7 @@ DJOSER = {
     'LOGIN_FIELD': 'email',
     'SERIALIZERS': {
         'user': 'api.serializers.UserSerializer',
-        'user_create': 'api.serializers.UserSerializer',
+        'user_create': 'api.serializers.UserCreateSerializer',
         'current_user': 'api.serializers.UserSerializer',
     },
     'PERMISSIONS': {
