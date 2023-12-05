@@ -12,7 +12,7 @@ from users.models import User, Subscription
 
 
 class UserSerializer(UserSerializer):
-    is_subscribed = serializers.SerializerMethodField()
+    is_subscribed = serializers.SerializerMethodField(method_name='get_is_subscribed')
 
     def get_is_subscribed(self, obj):
         request = self.context.get('request')
@@ -268,10 +268,13 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         return recipe
 
     def update(self, instance, validated_data):
-        ingredients = validated_data.pop('ingredients')
-        instance.ingredients.clear()
-        self.create_ingredients(ingredients, instance)
-        instance.tags.set(validated_data.pop('tags'))
+        ingredients = validated_data.pop('ingredients', None)
+        if ingredients:
+            instance.ingredients.clear()
+            self.create_ingredients(ingredients, instance)
+        tags = validated_data.pop('tags', None)
+        if tags:
+            instance.tags.set(tags)
         return super().update(
             instance, validated_data)
 

@@ -29,13 +29,13 @@ class RecipeFilter(FilterSet):
     def get_favorited_filter(self, queryset, name, value):
         user = self.request.user
         if value and user.is_authenticated:
-            return queryset.filter(favoriteslist__user=user)
+            return queryset.filter(favorites__user=user)
         return queryset
 
     def get_shopping_cart_filter(self, queryset, name, value):
         user = self.request.user
         if value and user.is_authenticated:
-            return queryset.filter(shoppinglist__user=user)
+            return queryset.filter(shopping_cart__user=user)
         return queryset
 
     class Meta:
