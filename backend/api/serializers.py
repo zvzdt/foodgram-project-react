@@ -12,6 +12,7 @@ from users.models import User, Subscription
 
 
 class UserSerializer(UserSerializer):
+    """Сериализатор списка пользователей"""
     is_subscribed = serializers.SerializerMethodField()
 
     def get_is_subscribed(self, obj):
@@ -20,7 +21,7 @@ class UserSerializer(UserSerializer):
             return Subscription.objects.filter(user=request.user,
                                                author=obj).exists()
         return False
-    
+
     class Meta:
         model = User
         fields = (
@@ -31,9 +32,10 @@ class UserSerializer(UserSerializer):
             'last_name',
             'is_subscribed',
         )
-    
+
 
 class UserCreateSerializer(UserCreateSerializer):
+    """Сериализатор создания пользователя"""
     password = serializers.CharField(write_only=True)
 
     class Meta:
@@ -46,21 +48,22 @@ class UserCreateSerializer(UserCreateSerializer):
             'email',
             'password'
         )
-    
+
     def validate(self, attrs):
         required_fields = ['username', 'last_name', 'email', 'password']
         for field in required_fields:
             if not attrs.get(field):
-                raise serializers.ValidationError(f'{field.capitalize()} обязательное поле')
+                raise serializers.ValidationError(
+                    f'{field.capitalize()} обязательное поле')
         return attrs
 
     def create(self, validated_data):
         user = User.objects.create_user(**validated_data)
         return user
 
- 
 
 class SubscriptionSerializer(serializers.ModelSerializer):
+    """Сериализатор подписок"""
     email = serializers.ReadOnlyField()
     username = serializers.ReadOnlyField()
     first_name = serializers.ReadOnlyField()
@@ -109,6 +112,7 @@ class SubscriptionSerializer(serializers.ModelSerializer):
 
 
 class TagsSerializer(serializers.ModelSerializer):
+    """Сериализатор тэгов"""
 
     class Meta:
         model = Tags
@@ -117,14 +121,15 @@ class TagsSerializer(serializers.ModelSerializer):
 
 
 class IngredientsSerializer(serializers.ModelSerializer):
+    """Сериализатор ингредиентов"""
 
     class Meta:
         model = Ingredients
         fields = ('id', 'name', 'measurement_unit')
 
 
-
 class RecipeIngredientsSerializer(serializers.ModelSerializer):
+    """Сериализатор ингредиенто в с количеством"""
     id = serializers.ReadOnlyField(source='ingredients.id')
     name = serializers.ReadOnlyField(source='ingredients.name')
     measurement_unit = serializers.ReadOnlyField(
@@ -136,7 +141,7 @@ class RecipeIngredientsSerializer(serializers.ModelSerializer):
 
 
 class RecipeIngredientsCreateSerializer(serializers.ModelSerializer):
-    """ Сериализатор создания ингредиентов для рецепта."""
+    """ Сериализатор создания ингредиентов рецепта"""
     id = serializers.IntegerField()
     amount = serializers.IntegerField(
         validators=[validate_amount,
@@ -147,20 +152,8 @@ class RecipeIngredientsCreateSerializer(serializers.ModelSerializer):
         fields = ('id', 'amount')
 
 
-class RecipeFavoriteSerializer(serializers.ModelSerializer):
-    """Список рецептов без ингридиентов."""
-    image = Base64ImageField(read_only=True)
-    name = serializers.ReadOnlyField()
-    cooking_time = serializers.ReadOnlyField()
-
-    class Meta:
-        model = Recipe
-        fields = ('id', 'name',
-                  'image', 'cooking_time')
-
-
 class RecipeSerializer(serializers.ModelSerializer):
-    """ Сериализатор получения рецепта."""
+    """ Сериализатор получения рецептов"""
     name = serializers.ReadOnlyField()
     author = UserSerializer(read_only=True)
     tags = TagsSerializer(many=True, read_only=True)
@@ -179,7 +172,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         if request and not request.user.is_anonymous:
             return FavoriteList.objects.filter(user=request.user,
-                                                recipe=obj).exists()
+                                               recipe=obj).exists()
         return False
 
     def get_shopping_cart(self, obj):
@@ -204,12 +197,12 @@ class RecipeSerializer(serializers.ModelSerializer):
 
 
 class RecipeCreateSerializer(serializers.ModelSerializer):
-    """ Сериализатор создания рецепта."""
+    """Сериализатор создания рецепта"""
     tags = serializers.PrimaryKeyRelatedField(
         queryset=Tags.objects.all(),
         many=True
     )
-    image = Base64ImageField(required=False, allow_null=True)
+    image = Base64ImageField(required=True, allow_null=True)
     ingredients = RecipeIngredientsCreateSerializer(
         many=True)
     cooking_time = serializers.IntegerField()
@@ -290,7 +283,19 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         read_only_fields = ('author',)
 
 
+class RecipeFavoriteSerializer(serializers.ModelSerializer):
+    """Список рецептов без ингридиентов."""
+    image = Base64ImageField(read_only=True)
+    name = serializers.ReadOnlyField()
+    cooking_time = serializers.ReadOnlyField()
+
+    class Meta:
+        model = Recipe
+        fields = ('id', 'name',
+                  'image', 'cooking_time')
+
 class ShortCutRecipeSerializer(serializers.ModelSerializer):
+    """Сериализатор коротокого рецепта"""
 
     class Meta:
         model = Recipe

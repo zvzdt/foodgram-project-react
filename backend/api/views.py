@@ -23,7 +23,7 @@ from .serializers import (
     UserSerializer, IngredientsSerializer, RecipeSerializer, RecipeCreateSerializer,
     RecipeFavoriteSerializer, SubscriptionSerializer, ShortCutRecipeSerializer, TagsSerializer
 )
-from .permissions import IsAdminOrReadOnly, IsOwnerOrReadOnly
+from .permissions import IsOwnerOrReadOnly
 
 
 class UserViewSet(UserViewSet):
