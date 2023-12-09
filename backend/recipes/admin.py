@@ -5,8 +5,8 @@ from .models import Ingredients, Recipe, RecipeIngredients, Tags
 class RecipeIngredientsInline(admin.TabularInline):
     model = RecipeIngredients
     extra = 1
-    fields = ['ingredient', 'amount']
-    list_display = ['ingredient', 'amount']
+    fields = ['ingredients', 'amount']
+    list_display = ['ingredients', 'amount']
 
 class RecipeAdmin(admin.ModelAdmin):
     list_display = ['name', 'author', 'cooking_time']

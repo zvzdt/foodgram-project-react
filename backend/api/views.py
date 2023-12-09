@@ -78,11 +78,9 @@ class UserViewSet(UserViewSet):
 class IngredientsViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ingredients.objects.all()
     serializer_class = IngredientsSerializer
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('^name',)
-    # filter_backends = (DjangoFilterBackend,)
-    # filterset_class = IngredientsFilter
-    # search_fields = ['name']
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = IngredientsFilter
+    search_fields = ['name__startswith']
     permission_classes = [AllowAny]
     pagination_class = None
     

@@ -132,3 +132,5 @@ DJOSER = {
         'user': ('rest_framework.permissions.AllowAny',),
     }, 
     }
+
+FILE_NAME = 'shopping_cart.txt'

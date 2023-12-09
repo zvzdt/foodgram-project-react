@@ -7,15 +7,20 @@ from .models import Ingredients, Recipe, Tags
 class IngredientsFilter(FilterSet):
     name = filters.CharFilter(field_name='name', lookup_expr='icontains')
 
-    class Meta:
-        model = Ingredients
-        fields = ['name']
-
     def filter_name(self, queryset, name, value):
         """Метод возвращает кверисет с заданным именем ингредиента."""
         return queryset.filter(
         Q(name__istartswith=value) | Q(name__icontains=' ' + value)
     ).order_by('name')
+    
+    
+    class Meta:
+        model = Ingredients
+        fields = ['name']
+        filterset_fields = {
+            'name': ['istartswith', 'icontains', 'exact'],
+        }
+
 
 
 class RecipeFilter(FilterSet):
