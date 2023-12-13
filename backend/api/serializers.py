@@ -217,11 +217,11 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
     def validate_tags(self, value):
         if not value:
             raise serializers.ValidationError(
-            'Добавьте тег.'
+                'Добавьте тег.'
             )
         if len(value) != len(set(value)):
             raise serializers.ValidationError(
-            'Теги не должны повторяться.'
+                'Теги не должны повторяться.'
             )
         return value
 
@@ -236,15 +236,19 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     'Такой ингредиент уже есть.'
                 )
+            try:
+                Ingredients.objects.get(pk=ingredient)
+            except Ingredients.DoesNotExist:
+                raise serializers.ValidationError(
+                    'Ингредиент не найден.'.format(ingredient))
         return value
-    
+
     def validate_image(self, image):
         if not image:
             raise serializers.ValidationError(
                 'Добавьте изображение.'
             )
         return image
-
 
     def validate_cooking_time(self, cooking_time):
         if int(cooking_time) <= 0:
@@ -262,9 +266,6 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
                     recipe=recipe,
                     ingredients=ingredient,
                     amount=amount)
-            # else:
-            #     raise serializers.ValidationError(
-            #         'Ингредиент с id={} не найден.'.format(ingredient_id))
 
     def create(self, validated_data):
         ingredients = validated_data.pop('ingredients')
@@ -276,6 +277,9 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         return recipe
 
     def update(self, instance, validated_data):
+        if 'ingredients' not in validated_data or 'tags' not in validated_data:
+            raise serializers.ValidationError(
+                'Поле не может быть пустым.')
         ingredients = validated_data.pop('ingredients')
         instance.ingredients.clear()
         self.create_ingredients(ingredients, instance)
@@ -308,6 +312,7 @@ class RecipeFavoriteSerializer(serializers.ModelSerializer):
         model = Recipe
         fields = ('id', 'name',
                   'image', 'cooking_time')
+
 
 class ShortCutRecipeSerializer(serializers.ModelSerializer):
     """Сериализатор коротокого рецепта"""
