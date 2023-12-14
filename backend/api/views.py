@@ -118,7 +118,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post', 'delete'])
     def favorite(self, request, **kwargs):
         user = self.request.user
-        recipe = get_object_or_404(Recipe, id=kwargs['pk'])
+        try:
+            recipe = Recipe.objects.get(id=kwargs['pk'])
+        except Recipe.DoesNotExist:
+            raise exceptions.ValidationError('Рецепт не найден.')
         if request.method == 'POST':
             if FavoriteList.objects.filter(
                 user=user,
@@ -144,8 +147,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post', 'delete'],
             permission_classes=(IsAuthenticated,))
     def shopping_cart(self, request, **kwargs):
-        recipe = get_object_or_404(Recipe, id=kwargs['pk'])
         user = self.request.user
+        recipe = get_object_or_404(Recipe, id=kwargs['pk'])
         if request.method == 'POST':
             shoppinglist_recipe, created = ShoppingCart.objects.get_or_create(
                 user=user,
