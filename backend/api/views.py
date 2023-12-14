@@ -154,7 +154,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             if not created:
                 raise exceptions.ValidationError(
                     'Рецепт уже в списке покупок.')
-            serializer = RecipeSerializer(
+            serializer = ShortCutRecipeSerializer(
                 recipe,
                 context={'request': request})
             return Response(serializer.data, status=status.HTTP_201_CREATED)
