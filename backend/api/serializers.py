@@ -69,7 +69,7 @@ class SubscriptionSerializer(serializers.ModelSerializer):
     first_name = serializers.ReadOnlyField()
     last_name = serializers.ReadOnlyField()
     recipes = serializers.SerializerMethodField(method_name='get_recipe')
-    recipe_count = serializers.SerializerMethodField(
+    recipes_count = serializers.SerializerMethodField(
         method_name='get_recipe_count'
     )
     is_subscribed = serializers.SerializerMethodField()
@@ -108,7 +108,7 @@ class SubscriptionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Subscription
         fields = ('email', 'id', 'username', 'first_name', 'last_name',
-                  'is_subscribed', 'recipes', 'recipe_count')
+                  'is_subscribed', 'recipes', 'recipes_count')
 
 
 class TagsSerializer(serializers.ModelSerializer):
