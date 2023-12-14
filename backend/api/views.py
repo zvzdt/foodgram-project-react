@@ -102,15 +102,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
 
-    def get_queryset(self):
-        recipes = Recipe.objects.prefetch_related(
-            'recipeingredients__ingredients', 'tags')
-        return recipes
 
     def get_serializer_class(self):
-        if self.action == 'list' or self.action == 'retrieve':
-            return RecipeSerializer
-        return RecipeCreateSerializer
+        if self.action == 'create' or self.action == 'partial_update':
+            return RecipeCreateSerializer
+        return RecipeSerializer
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
@@ -148,7 +144,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
             permission_classes=(IsAuthenticated,))
     def shopping_cart(self, request, **kwargs):
         user = self.request.user
-        recipe = get_object_or_404(Recipe, id=kwargs['pk'])
+        try:
+            recipe = Recipe.objects.get(id=kwargs['pk'])
+        except Recipe.DoesNotExist:
+            raise exceptions.ValidationError('Рецепт не найден.')
         if request.method == 'POST':
             shoppinglist_recipe, created = ShoppingCart.objects.get_or_create(
                 user=user,
@@ -164,16 +163,27 @@ class RecipeViewSet(viewsets.ModelViewSet):
         if request.method == 'DELETE':
             try:
                 shopping_cart = ShoppingCart.objects.get(user=user, recipe=recipe)
-            except ShoppingCart.DoesNotExist:
+                shopping_cart.delete()
                 return Response(
-                    {'detail': 'Рецепт не найден в списке покупок.'},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-            shopping_cart.delete()
-            return Response(
                 {'detail': 'Рецепт успешно удален из списка покупок.'},
                 status=status.HTTP_204_NO_CONTENT
-            )
+                )
+            except ShoppingCart.DoesNotExist:
+                return Response(
+                {'detail': 'Рецепт не найден в списке покупок.'},
+                status=status.HTTP_400_BAD_REQUEST
+                )
+            except Recipe.DoesNotExist:
+                return Response(
+                {'detail': 'Рецепт не найден.'},
+                status=status.HTTP_404_NOT_FOUND
+                )
+
+            # shopping_cart.delete()
+            # return Response(
+            #     {'detail': 'Рецепт успешно удален из списка покупок.'},
+            #     status=status.HTTP_204_NO_CONTENT
+            # )
 
     @action(detail=False, methods=['get'],
             permission_classes=(IsAuthenticated,))
