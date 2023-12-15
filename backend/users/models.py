@@ -1,7 +1,7 @@
 from django.contrib.auth.models import AbstractUser
-from django.db import models
 from django.core.validators import RegexValidator
-from rest_framework.exceptions import ValidationError
+from django.db import models
+
 
 class User(AbstractUser):
     username = models.CharField(
@@ -23,7 +23,7 @@ class User(AbstractUser):
         max_length=150,
         verbose_name='фамилия'
     )
-    email = models.EmailField( 
+    email = models.EmailField(
         unique=True,
         blank=False,
         max_length=254,
@@ -59,11 +59,10 @@ class Subscription(models.Model):
         related_name='following',
         verbose_name='Автор',
     )
-    
+
     class Meta:
         verbose_name = 'Подписка'
         verbose_name_plural = 'Подписки'
-    
 
     def __str__(self):
         return f'{self.user} {self.author}'

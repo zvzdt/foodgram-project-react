@@ -1,4 +1,5 @@
 from django.contrib import admin
+
 from .models import Ingredients, Recipe, RecipeIngredients, Tags
 
 
@@ -7,6 +8,7 @@ class RecipeIngredientsInline(admin.TabularInline):
     extra = 1
     fields = ['ingredients', 'amount']
     list_display = ['ingredients', 'amount']
+
 
 class RecipeAdmin(admin.ModelAdmin):
     list_display = ['name', 'author', 'cooking_time']

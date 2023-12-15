@@ -1,7 +1,8 @@
 import csv
 
-from django.core.management import BaseCommand
 from django.conf import settings
+from django.core.management import BaseCommand
+
 from recipes.models import Ingredients
 
 

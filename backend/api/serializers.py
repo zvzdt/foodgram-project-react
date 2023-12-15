@@ -1,14 +1,15 @@
 import re
-from django.core.files.base import ContentFile
+
 from django.core.validators import MinValueValidator
 from django.shortcuts import get_object_or_404
 from djoser.serializers import UserCreateSerializer, UserSerializer
-from rest_framework import serializers
 from drf_extra_fields.fields import Base64ImageField
-from api.validators import validate_amount
+from rest_framework import serializers
 
-from recipes.models import FavoriteList, Ingredients, Recipe, RecipeIngredients, ShoppingCart, Tags
-from users.models import User, Subscription
+from api.validators import validate_amount
+from recipes.models import (FavoriteList, Ingredients, Recipe,
+                            RecipeIngredients, ShoppingCart, Tags)
+from users.models import Subscription, User
 
 
 class UserSerializer(UserSerializer):
