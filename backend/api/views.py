@@ -4,15 +4,11 @@ from django.db.models.functions import Lower
 from django.db.models import Sum, Q
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
-from rest_framework import (
-    viewsets, filters, mixins, status, exceptions
-)
+from rest_framework import exceptions, filters, status, viewsets
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.permissions import (
-    IsAuthenticated, AllowAny
-)
+from rest_framework.permissions import IsAuthenticated, AllowAny
 
 from recipes.models import (
     FavoriteList, Ingredients, Recipe, RecipeIngredients,
@@ -20,10 +16,11 @@ from recipes.models import (
 )
 from recipes.filters import RecipeFilter
 from users.models import User, Subscription
-from .serializers import (
-    IngredientsSerializer, UserSerializer, RecipeSerializer, RecipeCreateSerializer,
-    RecipeFavoriteSerializer, SubscriptionSerializer, ShortCutRecipeSerializer, TagsSerializer
-)
+from .serializers import (IngredientsSerializer, UserSerializer, 
+                          RecipeSerializer, RecipeCreateSerializer, 
+                          RecipeFavoriteSerializer, 
+                          SubscriptionSerializer, 
+                          ShortCutRecipeSerializer, TagsSerializer)
 from .permissions import IsOwnerOrReadOnly
 
 
@@ -118,36 +115,30 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
-    def add_recipe_to_list(self, request, list_model, list_serializer):
+    def add_recipe_to_list(self, request, list_model,
+                           list_serializer):
         user = request.user
-        try:
-            recipe = get_object_or_404(Recipe, id=self.kwargs['pk'])
-        except Recipe.DoesNotExist:
-            raise exceptions.ValidationError('Рецепт не найден.')
-        if list_model.objects.filter(
-            user=user,
-            recipe=recipe
-        ).exists():
+        recipe_id = self.kwargs.get('pk')
+        recipe = Recipe.objects.filter(id=recipe_id).first()
+        if not recipe:
+            return Response({'error': 'Рецепт не найден'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        if list_model.objects.filter(user=user,
+                                     recipe=recipe).exists():
             raise exceptions.ValidationError(
                 'Рецепт уже добавлен в список.')
         list_model.objects.create(user=user, recipe=recipe)
-        serializer = list_serializer(
-            recipe,
-            context={'request': request},
-        )
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        serializer = list_serializer(recipe,
+                                     context={'request': request})
+        return Response(serializer.data,
+                        status=status.HTTP_201_CREATED)
 
     def remove_recipe_from_list(self, request, list_model):
         user = request.user
+        recipe = get_object_or_404(Recipe, id=self.kwargs['pk'])
         try:
-            recipe = get_object_or_404(Recipe, id=self.kwargs['pk'])
-        except Recipe.DoesNotExist:
-            raise exceptions.ValidationError('Рецепт не найден.')
-        try:
-            list_item = list_model.objects.get(
-                user=user,
-                recipe=recipe
-            )
+            list_item = list_model.objects.get(user=user,
+                                               recipe=recipe)
             list_item.delete()
             return Response({'detail': 'Рецепт удален.'},
                             status=status.HTTP_204_NO_CONTENT)
