@@ -1,7 +1,7 @@
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse
 from django.db.models.functions import Lower
-from django.db.models import Sum
+from django.db.models import Sum, Q
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
 from rest_framework import (
@@ -11,16 +11,17 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import (
-    IsAuthenticated, IsAuthenticatedOrReadOnly, AllowAny 
+    IsAuthenticated, AllowAny
 )
 
 from recipes.models import (
-    FavoriteList, Ingredients, Recipe, RecipeIngredients, ShoppingCart, Tags
+    FavoriteList, Ingredients, Recipe, RecipeIngredients,
+    ShoppingCart, Tags
 )
-from recipes.filters import IngredientsFilter, RecipeFilter
+from recipes.filters import RecipeFilter
 from users.models import User, Subscription
 from .serializers import (
-    UserSerializer, IngredientsSerializer, RecipeSerializer, RecipeCreateSerializer,
+    IngredientsSerializer, UserSerializer, RecipeSerializer, RecipeCreateSerializer,
     RecipeFavoriteSerializer, SubscriptionSerializer, ShortCutRecipeSerializer, TagsSerializer
 )
 from .permissions import IsOwnerOrReadOnly
@@ -37,7 +38,6 @@ class UserViewSet(UserViewSet):
             self.permission_classes = (IsAuthenticated,)
         return super().get_permissions()
 
-    
     @action(detail=True, methods=['post', 'delete'],
             permission_classes=(IsAuthenticated,))
     def subscribe(self, request, id):
@@ -53,7 +53,8 @@ class UserViewSet(UserViewSet):
             if user == author:
                 return Response({'error': 'Невозможно подписаться на себя'},
                                 status=status.HTTP_400_BAD_REQUEST)
-            serializer = SubscriptionSerializer(author, context={'request': request})
+            serializer = SubscriptionSerializer(
+                author, context={'request': request})
             Subscription.objects.create(user=user, author=author)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
@@ -78,13 +79,20 @@ class UserViewSet(UserViewSet):
 class IngredientsViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ingredients.objects.all()
     serializer_class = IngredientsSerializer
-    filter_backends = (DjangoFilterBackend,)
-    filterset_class = IngredientsFilter
-    search_fields = ['name__startswith']
-    permission_classes = [AllowAny]
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name', )
+    ordering_fields = ('name', )
+    permission_classes = (AllowAny,)
     pagination_class = None
-    
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        ingredient_name = self.request.GET.get('name')
+        if ingredient_name:
+            filters = Q(name__istartswith=ingredient_name)
+            queryset = queryset.filter(filters).annotate(
+                lower_name=Lower('name')).order_by('lower_name')
+        return queryset
 
 
 class TagsViewSet(viewsets.ReadOnlyModelViewSet):
@@ -101,7 +109,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
     pagination_class = LimitOffsetPagination
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
-
 
     def get_serializer_class(self):
         if self.action == 'create' or self.action == 'partial_update':
@@ -162,21 +169,22 @@ class RecipeViewSet(viewsets.ModelViewSet):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         if request.method == 'DELETE':
             try:
-                shopping_cart = ShoppingCart.objects.get(user=user, recipe=recipe)
+                shopping_cart = ShoppingCart.objects.get(
+                    user=user, recipe=recipe)
                 shopping_cart.delete()
                 return Response(
-                {'detail': 'Рецепт успешно удален из списка покупок.'},
-                status=status.HTTP_204_NO_CONTENT
+                    {'detail': 'Рецепт успешно удален из списка покупок.'},
+                    status=status.HTTP_204_NO_CONTENT
                 )
             except ShoppingCart.DoesNotExist:
                 return Response(
-                {'detail': 'Рецепт не найден в списке покупок.'},
-                status=status.HTTP_400_BAD_REQUEST
+                    {'detail': 'Рецепт не найден в списке покупок.'},
+                    status=status.HTTP_400_BAD_REQUEST
                 )
             except Recipe.DoesNotExist:
                 return Response(
-                {'detail': 'Рецепт не найден.'},
-                status=status.HTTP_404_NOT_FOUND
+                    {'detail': 'Рецепт не найден.'},
+                    status=status.HTTP_404_NOT_FOUND
                 )
 
             # shopping_cart.delete()

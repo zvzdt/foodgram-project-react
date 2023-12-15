@@ -74,18 +74,18 @@ class SubscriptionSerializer(serializers.ModelSerializer):
     )
     is_subscribed = serializers.SerializerMethodField()
 
-    def validate(self, obj):
-        author = self.instance
-        user = self.context.get('request').user
-        if user == author:
-            raise serializers.ValidationError(
-                'Вы не можете подписаться на самого себя!'
-            )
-        if Subscription.objects.filter(author=author, user=user).exists():
-            raise serializers.ValidationError(
-                'Вы уже подписаны на этого пользователя!'
-            )
-        return obj
+    # def validate(self, obj):
+    #     author = self.instance
+    #     user = self.context.get('request').user
+    #     if user == author:
+    #         raise serializers.ValidationError(
+    #             'Вы не можете подписаться на самого себя!'
+    #         )
+    #     if Subscription.objects.filter(author=author, user=user).exists():
+    #         raise serializers.ValidationError(
+    #             'Вы уже подписаны на этого пользователя!'
+    #         )
+    #     return obj
 
     def get_is_subscribed(self, obj):
         request = self.context.get('request')
