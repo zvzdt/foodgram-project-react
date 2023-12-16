@@ -121,7 +121,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         recipe_id = self.kwargs.get('pk')
         recipe = Recipe.objects.filter(id=recipe_id).first()
         if not recipe:
-            return Response({'error': 'Рецепт не найден'},
+            return Response('Рецепт не найден',
                             status=status.HTTP_400_BAD_REQUEST)
         if list_model.objects.filter(user=user,
                                      recipe=recipe).exists():
@@ -140,7 +140,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             list_item = list_model.objects.get(user=user,
                                                recipe=recipe)
             list_item.delete()
-            return Response({'detail': 'Рецепт удален.'},
+            return Response('Рецепт удален.',
                             status=status.HTTP_204_NO_CONTENT)
         except list_model.DoesNotExist:
             raise exceptions.ValidationError(
