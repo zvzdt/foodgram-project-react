@@ -19,7 +19,7 @@ class Command(BaseCommand):
                     defaults={'measurement_unit': row[1]}
                 )
                 if created:
-                    self.stdout.write(f'Ингредиен создан: {row[0]}')
+                    self.stdout.write(f'Добавлен ингредиент: {row[0]}')
                 else:
                     self.stdout.write(f'Ингредиент {row[0]} уже существует')
             self.stdout.write(self.style.SUCCESS('Данные успешно загружены.'))
