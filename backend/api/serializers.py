@@ -105,7 +105,7 @@ class IngredientsSerializer(serializers.ModelSerializer):
 
 
 class RecipeIngredientsSerializer(serializers.ModelSerializer):
-    """Сериализатор ингредиенто в с количеством"""
+    """Сериализатор ингредиентов с количеством"""
     id = serializers.ReadOnlyField(source='ingredients.id')
     name = serializers.ReadOnlyField(source='ingredients.name')
     measurement_unit = serializers.ReadOnlyField(
@@ -117,7 +117,7 @@ class RecipeIngredientsSerializer(serializers.ModelSerializer):
 
 
 class RecipeIngredientsCreateSerializer(serializers.ModelSerializer):
-    """ Сериализатор создания ингредиентов рецепта"""
+    """ Сериализатор создания ингредиентов для рецепта"""
     id = serializers.IntegerField()
     amount = serializers.IntegerField(
         validators=[validate_amount,
@@ -263,7 +263,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
 
 
 class RecipeFavoriteSerializer(serializers.ModelSerializer):
-    """Список рецептов без ингридиентов."""
+    """Список рецептов в избранном."""
     image = Base64ImageField(read_only=True)
     name = serializers.ReadOnlyField()
     cooking_time = serializers.ReadOnlyField()
@@ -274,7 +274,7 @@ class RecipeFavoriteSerializer(serializers.ModelSerializer):
 
 
 class ShortCutRecipeSerializer(serializers.ModelSerializer):
-    """Сериализатор коротокого рецепта"""
+    """Сериализатор коротокого отображения рецепта"""
 
     class Meta:
         model = Recipe
