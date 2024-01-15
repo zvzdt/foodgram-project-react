@@ -23,6 +23,7 @@ from .serializers import (IngredientsSerializer, RecipeCreateSerializer,
 
 
 class UserViewSet(UserViewSet):
+    """Класс работы с пользователями"""
     queryset = User.objects.all()
     serializer_class = UserSerializer
     pagination_class = LimitOffsetPagination
@@ -74,6 +75,7 @@ class UserViewSet(UserViewSet):
 
 
 class IngredientsViewSet(viewsets.ReadOnlyModelViewSet):
+    """Получение списка ингредиентов."""
     queryset = Ingredients.objects.all()
     serializer_class = IngredientsSerializer
     filter_backends = (filters.SearchFilter,)
@@ -93,6 +95,7 @@ class IngredientsViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class TagsViewSet(viewsets.ReadOnlyModelViewSet):
+    """Получпение списка тэгов."""
     queryset = Tags.objects.all()
     serializer_class = TagsSerializer
     permission_classes = (AllowAny, )
@@ -100,6 +103,7 @@ class TagsViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
+    """Класс работы с рецептами."""
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
     permission_classes = (IsOwnerOrReadOnly, )
