@@ -77,11 +77,6 @@ class IngredientsViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        ingredient_name = self.request.GET.get('name')
-        if ingredient_name:
-            filters = Q(name__istartswith=ingredient_name)
-            queryset = queryset.filter(filters).annotate(
-                lower_name=Lower('name')).order_by('lower_name')
         return queryset
 
 
@@ -131,15 +126,14 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def remove_recipe_from_list(self, request, list_model):
         user = request.user
         recipe = get_object_or_404(Recipe, id=self.kwargs['pk'])
-        try:
-            list_item = list_model.objects.get(user=user,
-                                               recipe=recipe)
+        list_item = list_model.objects.filter(user=user, recipe=recipe)
+        if list_item.exists():
             list_item.delete()
-            return Response('Рецепт удален.',
+            return Response('Рецепт удален.', 
                             status=status.HTTP_204_NO_CONTENT)
-        except list_model.DoesNotExist:
-            raise exceptions.ValidationError(
-                'Рецепт не найден в списке.')
+        else:
+            return Response('Рецепт не найден в списке.', 
+                            status=status.HTTP_404_NOT_FOUND)
 
     @action(detail=True, methods=['post', 'delete'])
     def favorite(self, request, **kwargs):
