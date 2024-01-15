@@ -1,12 +1,12 @@
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import RegexValidator
 from django.db import models
+from django.db.models import F, Q
 
 
 class User(AbstractUser):
     username = models.CharField(
         unique=True,
-        blank=False,
         max_length=150,
         verbose_name='имя пользователя',
         validators=[
@@ -14,27 +14,17 @@ class User(AbstractUser):
         ],
     )
     first_name = models.CharField(
-        blank=False,
         max_length=150,
         verbose_name='ваше имя'
     )
     last_name = models.CharField(
-        blank=False,
         max_length=150,
         verbose_name='фамилия'
     )
     email = models.EmailField(
         unique=True,
-        blank=False,
         max_length=254,
         verbose_name='email aдрес'
-    )
-    is_subscribed = models.ManyToManyField(
-        to='self',
-        through='Subscription',
-        through_fields=('user', 'author'),
-        related_name='is_following',
-        symmetrical=False,
     )
 
     class Meta:
@@ -63,6 +53,16 @@ class Subscription(models.Model):
     class Meta:
         verbose_name = 'Подписка'
         verbose_name_plural = 'Подписки'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'author'],
+                name='unique_subscribes'
+            ),
+            models.CheckConstraint(
+                check=~Q(user=F('author')),
+                name='user_cannot_follow_self'
+            )
+        ]
 
     def __str__(self):
         return f'{self.user} {self.author}'

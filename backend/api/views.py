@@ -1,7 +1,7 @@
 from django.db.models import Q, Sum
 from django.db.models.functions import Lower
 from django.http import HttpResponse
-from django.shortcuts import get_object_or_404
+from rest_framework.generics import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
 from rest_framework import exceptions, filters, status, viewsets
@@ -10,11 +10,10 @@ from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
-from recipes.filters import RecipeFilter
+from api.filters import RecipeFilter
 from recipes.models import (FavoriteList, Ingredients, Recipe,
                             RecipeIngredients, ShoppingCart, Tags)
 from users.models import Subscription, User
-
 from .permissions import IsOwnerOrReadOnly
 from .serializers import (IngredientsSerializer, RecipeCreateSerializer,
                           RecipeFavoriteSerializer, RecipeSerializer,
@@ -55,13 +54,6 @@ class UserViewSet(UserViewSet):
             return Response(serializer.data,
                             status=status.HTTP_201_CREATED)
 
-        if request.method == 'DELETE':
-            if subscription.exists():
-                subscription.delete()
-                return Response('Вы отписались',
-                                status=status.HTTP_204_NO_CONTENT)
-            return Response('Вы не подписаны на этого пользователя',
-                            status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, permission_classes=(IsAuthenticated,))
     def subscriptions(self, request):
@@ -76,7 +68,6 @@ class UserViewSet(UserViewSet):
 
 class IngredientsViewSet(viewsets.ReadOnlyModelViewSet):
     """Получение списка ингредиентов."""
-    queryset = Ingredients.objects.all()
     serializer_class = IngredientsSerializer
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name', )
