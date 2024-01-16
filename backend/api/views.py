@@ -1,19 +1,18 @@
-from django.db.models import Q, Sum
-from django.db.models.functions import Lower
+from api.filters import RecipeFilter
+from django.db.models import Sum
 from django.http import HttpResponse
-from rest_framework.generics import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
+from recipes.models import (FavoriteList, Ingredients, Recipe,
+                            RecipeIngredients, ShoppingCart, Tags)
 from rest_framework import exceptions, filters, status, viewsets
 from rest_framework.decorators import action
+from rest_framework.generics import get_object_or_404
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-
-from api.filters import RecipeFilter
-from recipes.models import (FavoriteList, Ingredients, Recipe,
-                            RecipeIngredients, ShoppingCart, Tags)
 from users.models import Subscription, User
+
 from .permissions import IsOwnerOrReadOnly
 from .serializers import (IngredientsSerializer, RecipeCreateSerializer,
                           RecipeFavoriteSerializer, RecipeSerializer,
@@ -43,17 +42,16 @@ class UserViewSet(UserViewSet):
 
         if request.method == 'POST':
             if subscription.exists():
-                return Response('Вы уже подписаны',
+                return Response({"errors": 'Вы уже подписаны'},
                                 status=status.HTTP_400_BAD_REQUEST)
             if user == author:
-                return Response('Нелья подписаться на себя',
+                return Response({"errors": 'Нелья подписаться на себя'},
                                 status=status.HTTP_400_BAD_REQUEST)
             serializer = SubscriptionSerializer(
                 author, context={'request': request})
             Subscription.objects.create(user=user, author=author)
             return Response(serializer.data,
                             status=status.HTTP_201_CREATED)
-
 
     @action(detail=False, permission_classes=(IsAuthenticated,))
     def subscriptions(self, request):
@@ -111,12 +109,12 @@ class RecipeViewSet(viewsets.ModelViewSet):
         recipe_id = self.kwargs.get('pk')
         recipe = Recipe.objects.filter(id=recipe_id).first()
         if not recipe:
-            return Response('Рецепт не найден',
+            return Response({"errors": 'Рецепт не найден'},
                             status=status.HTTP_400_BAD_REQUEST)
         if list_model.objects.filter(user=user,
                                      recipe=recipe).exists():
             raise exceptions.ValidationError(
-                'Рецепт уже добавлен в список.')
+                {"errors": 'Рецепт уже добавлен в список'})
         list_model.objects.create(user=user, recipe=recipe)
         serializer = list_serializer(recipe,
                                      context={'request': request})
@@ -129,10 +127,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
         list_item = list_model.objects.filter(user=user, recipe=recipe)
         if list_item.exists():
             list_item.delete()
-            return Response('Рецепт удален.', 
+            return Response('Рецепт удален.',
                             status=status.HTTP_204_NO_CONTENT)
         else:
-            return Response('Рецепт не найден в списке.', 
+            return Response({"errors": 'Рецепт не найден в списке'},
                             status=status.HTTP_404_NOT_FOUND)
 
     @action(detail=True, methods=['post', 'delete'])
