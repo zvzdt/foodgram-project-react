@@ -72,6 +72,7 @@ class IngredientsViewSet(viewsets.ReadOnlyModelViewSet):
     ordering_fields = ('name', )
     permission_classes = (AllowAny,)
     pagination_class = None
+    queryset = Ingredient.objects.all()
 
     def get_queryset(self):
         queryset = super().get_queryset()
