@@ -247,7 +247,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Поле не может быть пустым.')
         ingredient = validated_data.pop('ingredient')
         instance.ingredient.clear()
-        self.create_ingredients(ingredient, instance)
+        self.create_ingredient(ingredient, instance)
         instance.tags.set(validated_data.pop('tags'))
         return super().update(
             instance, validated_data)
