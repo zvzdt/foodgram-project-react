@@ -174,7 +174,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         many=True
     )
     image = Base64ImageField(required=True)
-    ingredients = RecipeIngredientsCreateSerializer(
+    ingredient = RecipeIngredientsCreateSerializer(
         many=True)
     cooking_time = serializers.IntegerField()
 
@@ -198,7 +198,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Теги не должны повторяться.')
         return value
 
-    def validate_ingredients(self, value):
+    def validate_ingredient(self, value):
         if not value:
             raise serializers.ValidationError('Добавьте ингредиент.')
         ingredients = [item['id'] for item in value]
@@ -222,7 +222,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
                 'Время приготовления должно быть больше 1')
         return cooking_time
 
-    def create_ingredients(self, ingredient, recipe):
+    def create_ingredient(self, ingredient, recipe):
         for ingredient_data in ingredient:
             amount = ingredient_data['amount']
             ingredient_id = ingredient_data['id']
@@ -238,7 +238,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         tags = validated_data.pop('tags')
         recipe = Recipe.objects.create(**validated_data)
         recipe.tags.set(tags)
-        self.create_ingredients(ingredient, recipe)
+        self.create_ingredient(ingredient, recipe)
         recipe.save()
         return recipe
 

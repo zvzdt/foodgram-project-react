@@ -3,8 +3,8 @@ from django.db.models import Sum
 from django.http import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
-from recipes.models import (FavoriteList, Ingredients, Recipe,
-                            RecipeIngredients, ShoppingCart, Tags)
+from recipes.models import (Favorite, Ingredient, Recipe,
+                            RecipeIngredients, ShoppingCart, Tag)
 from rest_framework import exceptions, filters, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
@@ -80,7 +80,7 @@ class IngredientsViewSet(viewsets.ReadOnlyModelViewSet):
 
 class TagsViewSet(viewsets.ReadOnlyModelViewSet):
     """Получпение списка тэгов."""
-    queryset = Tags.objects.all()
+    queryset = Tag.objects.all()
     serializer_class = TagsSerializer
     permission_classes = (AllowAny, )
     pagination_class = None
@@ -138,13 +138,13 @@ class RecipeViewSet(viewsets.ModelViewSet):
         if request.method == 'POST':
             return self.add_recipe_to_list(
                 request,
-                FavoriteList,
+                Favorite,
                 RecipeFavoriteSerializer
             )
         elif request.method == 'DELETE':
             return self.remove_recipe_from_list(
                 request,
-                FavoriteList
+                Favorite
             )
 
     @action(detail=True, methods=['post', 'delete'],
@@ -168,11 +168,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
         shopping_cart = ShoppingCart.objects.filter(user=self.request.user)
         recipes = [item.recipe.id for item in shopping_cart]
         recipeingredients_list = RecipeIngredients.objects.filter(
-            recipe__in=recipes).values('ingredients').annotate(
+            recipe__in=recipes).values('ingredient').annotate(
             amount=Sum('amount'))
         text = 'Список покупок:\n'
         for item in recipeingredients_list:
-            ingredient = Ingredients.objects.get(pk=item['ingredients'])
+            ingredient = Ingredient.objects.get(pk=item['ingredient'])
             amount = item['amount']
             text += (f'{ingredient.name}, {amount} '
                      f'{ingredient.measurement_unit}\n'
