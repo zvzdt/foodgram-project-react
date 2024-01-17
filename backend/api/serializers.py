@@ -50,7 +50,7 @@ class UserCreateSerializer(UserCreateSerializer):
         return user
 
 
-class SubscriptionSerializer(UserSerializer):
+class SubscriptionSerializer(serializers.ModelSerializer):
     """Сериализатор подписок"""
     email = serializers.ReadOnlyField()
     username = serializers.ReadOnlyField()
@@ -106,10 +106,10 @@ class IngredientsSerializer(serializers.ModelSerializer):
 
 class RecipeIngredientsSerializer(serializers.ModelSerializer):
     """Сериализатор ингредиентов с количеством"""
-    id = serializers.ReadOnlyField(source='ingredients.id')
-    name = serializers.ReadOnlyField(source='ingredients.name')
+    id = serializers.ReadOnlyField(source='ingredient.id')
+    name = serializers.ReadOnlyField(source='ingredient.name')
     measurement_unit = serializers.ReadOnlyField(
-        source='ingredients.measurement_unit')
+        source='ingredient.measurement_unit')
 
     class Meta:
         model = RecipeIngredients
@@ -174,13 +174,13 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         many=True
     )
     image = Base64ImageField(required=True)
-    ingredient = RecipeIngredientsCreateSerializer(
+    ingredients = RecipeIngredientsCreateSerializer(
         many=True)
     cooking_time = serializers.IntegerField()
 
     class Meta:
         model = Recipe
-        fields = ('id', 'ingredient', 'tags', 'image', 'name', 'text',
+        fields = ('id', 'ingredients', 'tags', 'image', 'name', 'text',
                   'cooking_time', 'author')
         read_only_fields = ('author',)
 
@@ -234,7 +234,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
                     amount=amount)
 
     def create(self, validated_data):
-        ingredient = validated_data.pop('ingredient')
+        ingredient = validated_data.pop('ingredients')
         tags = validated_data.pop('tags')
         recipe = Recipe.objects.create(**validated_data)
         recipe.tags.set(tags)
@@ -243,10 +243,10 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         return recipe
 
     def update(self, instance, validated_data):
-        if 'ingredient' not in validated_data or 'tags' not in validated_data:
+        if 'ingredients' not in validated_data or 'tags' not in validated_data:
             raise serializers.ValidationError('Поле не может быть пустым.')
-        ingredient = validated_data.pop('ingredient')
-        instance.ingredient.clear()
+        ingredient = validated_data.pop('ingredients')
+        instance.ingredients.clear()
         self.create_ingredient(ingredient, instance)
         instance.tags.set(validated_data.pop('tags'))
         return super().update(

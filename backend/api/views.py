@@ -1,5 +1,5 @@
-from api.filters import RecipeFilter
-from django.db.models import Sum
+from django.db.models import Q, Sum
+from django.db.models.functions import Lower 
 from django.http import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
@@ -11,6 +11,7 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+from api.filters import RecipeFilter
 from users.models import Subscription, User
 
 from .permissions import IsOwnerOrReadOnly
@@ -76,6 +77,11 @@ class IngredientsViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         queryset = super().get_queryset()
+        ingredient_name = self.request.GET.get('name')
+        if ingredient_name:
+            filters = Q(name__istartswith=ingredient_name)
+            queryset = queryset.filter(filters).annotate(
+                lower_name=Lower('name')).order_by('lower_name')
         return queryset
 
 
@@ -126,13 +132,15 @@ class RecipeViewSet(viewsets.ModelViewSet):
         user = request.user
         recipe = get_object_or_404(Recipe, id=self.kwargs['pk'])
         list_item = list_model.objects.filter(user=user, recipe=recipe)
-        if list_item.exists():
-            list_item.delete()
-            return Response('Рецепт удален.',
-                            status=status.HTTP_204_NO_CONTENT)
-        else:
-            return Response({"errors": 'Рецепт не найден в списке'},
-                            status=status.HTTP_404_NOT_FOUND)
+        try: 
+            list_item = list_model.objects.get(user=user, 
+                                               recipe=recipe) 
+            list_item.delete() 
+            return Response('Рецепт удален.', 
+                            status=status.HTTP_204_NO_CONTENT) 
+        except list_model.DoesNotExist: 
+            raise exceptions.ValidationError( 
+                'Рецепт не найден в списке.') 
 
     @action(detail=True, methods=['post', 'delete'])
     def favorite(self, request, **kwargs):
