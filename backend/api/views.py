@@ -54,7 +54,7 @@ class UserViewSet(UserViewSet):
             return Response(serializer.data,
                             status=status.HTTP_201_CREATED)
 
-        if request.method == 'DELETE':
+        if request.method == 'DELETE': #если убираю эту проверку, не проходит тесты.
             if subscription.exists():
                 subscription.delete()
                 return Response('Вы отписались',
@@ -86,6 +86,9 @@ class IngredientsViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         queryset = super().get_queryset()
         ingredient_name = self.request.GET.get('name')
+        #я по разному пробовал, фильрация работает только так
+        #если использую SearchFilter или кастомные методы, то выдает все ингредиенты
+        #содержажие буку, а не начинающиеся с это буквы
         if ingredient_name:
             filters = Q(name__istartswith=ingredient_name)
             queryset = queryset.filter(filters).annotate(

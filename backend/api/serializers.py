@@ -13,21 +13,21 @@ from users.models import Subscription, User
 
 class UserSerializer(UserSerializer):
     """Сериализатор списка пользователей"""
-    is_subscribed = serializers.SerializerMethodField(
-        method_name='get_is_subscribed'
-        )
+    is_subscribed = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = User
-        fields = ('id', 'email', 'username', 'first_name',
-                  'last_name', 'is_subscribed',)
+        fields = ('id', 'username', 'first_name', 'last_name', 'email',
+                  'is_subscribed')
+    #не понимаю в чем проблема, после того, как убрал is_subscribed из модели
+    #у меня валятся тесты на подписки. рукается на это поля. 
+    #Хотя я удали миграции и сделал новую БД
 
-    def get_is_subscribed(self, obj):
-        request = self.context.get('request')
-        if request and not request.user.is_anonymous:
-            return Subscription.objects.filter(user=request.user,
-                                               author=obj).exists()
-        return False
+    def get_is_subscribed(self, object):
+        user = self.context.get('request').user
+        if user.is_anonymous:
+            return False
+        return Subscription.objects.filter(user=user, author=object).exists()
 
 
 class UserCreateSerializer(UserCreateSerializer):
@@ -59,10 +59,9 @@ class SubscriptionSerializer(serializers.ModelSerializer):
         method_name='get_recipes_count'
     )
 
-    class Meta:
-        model = User
-        fields = ('id', 'username', 'first_name', 'last_name', 'email',
-                  'is_subscribed', 'recipes', 'recipes_count')
+    class Meta(UserSerializer.Meta):
+        fields = UserSerializer.Meta.fields + ('recipes_count', 'recipes')
+        read_only_fields = ('email', 'username', 'first_name', 'last_name')
     
     
     def get_recipe(self, obj):
