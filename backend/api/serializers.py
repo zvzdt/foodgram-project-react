@@ -19,9 +19,6 @@ class UserSerializer(UserSerializer):
         model = User
         fields = ('id', 'username', 'first_name', 'last_name', 'email',
                   'is_subscribed')
-    #не понимаю в чем проблема, после того, как убрал is_subscribed из модели
-    #у меня валятся тесты на подписки. рукается на это поля. 
-    #Хотя я удали миграции и сделал новую БД
 
     def get_is_subscribed(self, object):
         user = self.context.get('request').user
@@ -54,16 +51,23 @@ class UserCreateSerializer(UserCreateSerializer):
 
 class SubscriptionSerializer(serializers.ModelSerializer):
     """Сериализатор подписок"""
+    is_subscribed = serializers.SerializerMethodField(read_only=True)
     recipes = serializers.SerializerMethodField(method_name='get_recipe')
     recipes_count = serializers.SerializerMethodField(
         method_name='get_recipes_count'
     )
 
     class Meta(UserSerializer.Meta):
-        fields = UserSerializer.Meta.fields + ('recipes_count', 'recipes')
+        fields = UserSerializer.Meta.fields + ('is_subscribed',
+                                               'recipes_count', 'recipes')
         read_only_fields = ('email', 'username', 'first_name', 'last_name')
-    
-    
+
+    def get_is_subscribed(self, object):
+        user = self.context.get('request').user
+        if user.is_anonymous:
+            return False
+        return Subscription.objects.filter(user=user, author=object).exists()
+
     def get_recipe(self, obj):
         request = self.context.get('request')
         limit = request.GET.get('recipes_limit')
