@@ -40,7 +40,6 @@ class UserViewSet(UserViewSet):
         author = get_object_or_404(User, id=id)
         subscription = Subscription.objects.filter(
             user=user, author=author)
-
         if request.method == 'POST':
             if subscription.exists():
                 return Response({"errors": 'Вы уже подписаны'},
@@ -53,9 +52,7 @@ class UserViewSet(UserViewSet):
             Subscription.objects.create(user=user, author=author)
             return Response(serializer.data,
                             status=status.HTTP_201_CREATED)
-
-        # если убираю эту проверку, не проходит тесты.
-        if request.method == 'DELETE':
+        else:
             if subscription.exists():
                 subscription.delete()
                 return Response('Вы отписались',
