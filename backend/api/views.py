@@ -1,5 +1,5 @@
 from django.db.models import Q, Sum
-from django.db.models.functions import Lower 
+from django.db.models.functions import Lower
 from django.http import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
@@ -53,6 +53,14 @@ class UserViewSet(UserViewSet):
             Subscription.objects.create(user=user, author=author)
             return Response(serializer.data,
                             status=status.HTTP_201_CREATED)
+
+        if request.method == 'DELETE':
+            if subscription.exists():
+                subscription.delete()
+                return Response('Вы отписались',
+                                status=status.HTTP_204_NO_CONTENT)
+            return Response({"errors": 'Вы не подписаны на этого пользователя'},
+                            status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, permission_classes=(IsAuthenticated,))
     def subscriptions(self, request):
@@ -132,15 +140,15 @@ class RecipeViewSet(viewsets.ModelViewSet):
         user = request.user
         recipe = get_object_or_404(Recipe, id=self.kwargs['pk'])
         list_item = list_model.objects.filter(user=user, recipe=recipe)
-        try: 
-            list_item = list_model.objects.get(user=user, 
-                                               recipe=recipe) 
-            list_item.delete() 
-            return Response('Рецепт удален.', 
-                            status=status.HTTP_204_NO_CONTENT) 
-        except list_model.DoesNotExist: 
-            raise exceptions.ValidationError( 
-                'Рецепт не найден в списке.') 
+        try:
+            list_item = list_model.objects.get(user=user,
+                                               recipe=recipe)
+            list_item.delete()
+            return Response('Рецепт удален.',
+                            status=status.HTTP_204_NO_CONTENT)
+        except list_model.DoesNotExist:
+            raise exceptions.ValidationError(
+                'Рецепт не найден в списке.')
 
     @action(detail=True, methods=['post', 'delete'])
     def favorite(self, request, **kwargs):

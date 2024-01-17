@@ -13,7 +13,9 @@ from users.models import Subscription, User
 
 class UserSerializer(UserSerializer):
     """Сериализатор списка пользователей"""
-    is_subscribed = serializers.SerializerMethodField()
+    is_subscribed = serializers.SerializerMethodField(
+        method_name='get_is_subscribed'
+        )
 
     class Meta:
         model = User
@@ -52,28 +54,17 @@ class UserCreateSerializer(UserCreateSerializer):
 
 class SubscriptionSerializer(serializers.ModelSerializer):
     """Сериализатор подписок"""
-    email = serializers.ReadOnlyField()
-    username = serializers.ReadOnlyField()
-    first_name = serializers.ReadOnlyField()
-    last_name = serializers.ReadOnlyField()
     recipes = serializers.SerializerMethodField(method_name='get_recipe')
     recipes_count = serializers.SerializerMethodField(
-        method_name='get_recipe_count'
+        method_name='get_recipes_count'
     )
-    is_subscribed = serializers.SerializerMethodField()
 
     class Meta:
-        model = Subscription
-        fields = ('email', 'id', 'username', 'first_name', 'last_name',
+        model = User
+        fields = ('id', 'username', 'first_name', 'last_name', 'email',
                   'is_subscribed', 'recipes', 'recipes_count')
-
-    def get_is_subscribed(self, obj):
-        request = self.context.get('request')
-        if request and not request.user.is_anonymous:
-            return Subscription.objects.filter(user=request.user,
-                                               author=obj).exists()
-        return False
-
+    
+    
     def get_recipe(self, obj):
         request = self.context.get('request')
         limit = request.GET.get('recipes_limit')
@@ -83,7 +74,7 @@ class SubscriptionSerializer(serializers.ModelSerializer):
         serialized_recipes = ShortCutRecipeSerializer(recipes, many=True).data
         return serialized_recipes
 
-    def get_recipe_count(self, obj):
+    def get_recipes_count(self, obj):
         return Recipe.objects.filter(author=obj).count()
 
 
