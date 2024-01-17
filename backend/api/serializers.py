@@ -175,7 +175,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
     )
     image = Base64ImageField(required=True)
     ingredients = RecipeIngredientsCreateSerializer(
-        many=True)
+        many=True,)
     cooking_time = serializers.IntegerField()
 
     class Meta:
@@ -198,7 +198,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Теги не должны повторяться.')
         return value
 
-    def validate_ingredient(self, value):
+    def validate_ingredients(self, value):
         if not value:
             raise serializers.ValidationError('Добавьте ингредиент.')
         ingredients = [item['id'] for item in value]
