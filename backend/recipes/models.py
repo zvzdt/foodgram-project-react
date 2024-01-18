@@ -10,7 +10,6 @@ class Tag(models.Model):
     name = models.CharField(
         verbose_name='имя тэга',
         max_length=200,
-        blank=False,
     )
     color = ColorField(
         verbose_name='цвет',
@@ -42,12 +41,10 @@ class Ingredient(models.Model):
     name = models.CharField(
         verbose_name='название',
         max_length=200,
-        blank=False
     )
     measurement_unit = models.CharField(
         verbose_name='единица измерения',
         max_length=200,
-        blank=False
     )
 
     class Meta:
@@ -89,17 +86,14 @@ class Recipe(models.Model):
     name = models.CharField(
         verbose_name='название',
         max_length=200,
-        blank=False
     )
     text = models.TextField(
         verbose_name='описание',
-        blank=False
     )
     cooking_time = models.PositiveIntegerField(
         validators=(MinValueValidator(1,
                     message='Минимальное время приготовления 1 минута'),),
         verbose_name='время приготовления (в минутах)',
-        blank=False
     )
 
     class Meta:

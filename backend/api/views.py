@@ -3,17 +3,17 @@ from django.db.models.functions import Lower
 from django.http import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
-from recipes.models import (Favorite, Ingredient, Recipe,
-                            RecipeIngredients, ShoppingCart, Tag)
 from rest_framework import exceptions, filters, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from api.filters import RecipeFilter
-from users.models import Subscription, User
 
+from recipes.models import (Favorite, Ingredient, Recipe,
+                            RecipeIngredients, ShoppingCart, Tag)
+from users.models import Subscription, User
+from api.filters import RecipeFilter
 from .permissions import IsOwnerOrReadOnly
 from .serializers import (IngredientsSerializer, RecipeCreateSerializer,
                           RecipeFavoriteSerializer, RecipeSerializer,
@@ -42,10 +42,10 @@ class UserViewSet(UserViewSet):
             user=user, author=author)
         if request.method == 'POST':
             if subscription.exists():
-                return Response({"errors": 'Вы уже подписаны'},
+                return Response({'errors': 'Вы уже подписаны'},
                                 status=status.HTTP_400_BAD_REQUEST)
             if user == author:
-                return Response({"errors": 'Нелья подписаться на себя'},
+                return Response({'errors': 'Нелья подписаться на себя'},
                                 status=status.HTTP_400_BAD_REQUEST)
             serializer = SubscriptionSerializer(
                 author, context={'request': request})
@@ -57,7 +57,7 @@ class UserViewSet(UserViewSet):
                 subscription.delete()
                 return Response('Вы отписались',
                                 status=status.HTTP_204_NO_CONTENT)
-            return Response({"errors":
+            return Response({'errors':
                              'Вы не подписаны на этого пользователя'},
                             status=status.HTTP_400_BAD_REQUEST)
 
@@ -85,9 +85,6 @@ class IngredientsViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         queryset = super().get_queryset()
         ingredient_name = self.request.GET.get('name')
-        # я по разному пробовал, фильрация работает только так
-        # если использую SearchFilter или кастомные методы, то выдает все
-        # ингредиенты, содержажие буку, а не начинающиеся с это буквы
         if ingredient_name:
             filters = Q(name__istartswith=ingredient_name)
             queryset = queryset.filter(filters).annotate(
@@ -126,12 +123,12 @@ class RecipeViewSet(viewsets.ModelViewSet):
         recipe_id = self.kwargs.get('pk')
         recipe = Recipe.objects.filter(id=recipe_id).first()
         if not recipe:
-            return Response({"errors": 'Рецепт не найден'},
+            return Response({'errors': 'Рецепт не найден'},
                             status=status.HTTP_400_BAD_REQUEST)
         if list_model.objects.filter(user=user,
                                      recipe=recipe).exists():
             raise exceptions.ValidationError(
-                {"errors": 'Рецепт уже добавлен в список'})
+                {'errors': 'Рецепт уже добавлен в список'})
         list_model.objects.create(user=user, recipe=recipe)
         serializer = list_serializer(recipe,
                                      context={'request': request})
@@ -150,7 +147,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
                             status=status.HTTP_204_NO_CONTENT)
         except list_model.DoesNotExist:
             raise exceptions.ValidationError(
-                'Рецепт не найден в списке.')
+                {'errors': 'Рецепт не найден в списке'})
 
     @action(detail=True, methods=['post', 'delete'])
     def favorite(self, request, **kwargs):

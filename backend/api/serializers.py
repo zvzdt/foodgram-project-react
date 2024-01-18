@@ -1,17 +1,19 @@
 import re
 
-from api.validators import validate_amount
 from django.core.validators import MinValueValidator
 from django.shortcuts import get_object_or_404
-from djoser.serializers import UserCreateSerializer, UserSerializer
+from djoser.serializers import (UserCreateSerializer,
+                                UserSerializer as DjoserUserSerializer)
 from drf_extra_fields.fields import Base64ImageField
 from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredients,
                             ShoppingCart, Tag)
 from rest_framework import serializers
+
 from users.models import Subscription, User
+from api.validators import validate_amount
 
 
-class UserSerializer(UserSerializer):
+class UserSerializer(DjoserUserSerializer):
     """Сериализатор списка пользователей"""
     is_subscribed = serializers.SerializerMethodField(read_only=True)
 
@@ -49,17 +51,15 @@ class UserCreateSerializer(UserCreateSerializer):
         return user
 
 
-class SubscriptionSerializer(serializers.ModelSerializer):
+class SubscriptionSerializer(UserSerializer):
     """Сериализатор подписок"""
-    is_subscribed = serializers.SerializerMethodField(read_only=True)
     recipes = serializers.SerializerMethodField(method_name='get_recipe')
     recipes_count = serializers.SerializerMethodField(
         method_name='get_recipes_count'
     )
 
     class Meta(UserSerializer.Meta):
-        fields = UserSerializer.Meta.fields + ('is_subscribed',
-                                               'recipes_count', 'recipes')
+        fields = UserSerializer.Meta.fields + ('recipes_count', 'recipes')
         read_only_fields = ('email', 'username', 'first_name', 'last_name')
 
     def get_is_subscribed(self, object):
