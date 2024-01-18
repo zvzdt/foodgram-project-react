@@ -1,9 +1,8 @@
-from django.db.models import Q, Sum
-from django.db.models.functions import Lower
+from django.db.models import Sum
 from django.http import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
-from rest_framework import exceptions, filters, status, viewsets
+from rest_framework import exceptions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework.pagination import LimitOffsetPagination
@@ -13,7 +12,7 @@ from rest_framework.response import Response
 from recipes.models import (Favorite, Ingredient, Recipe,
                             RecipeIngredients, ShoppingCart, Tag)
 from users.models import Subscription, User
-from api.filters import RecipeFilter
+from api.filters import IngredientsFilter, RecipeFilter
 from .permissions import IsOwnerOrReadOnly
 from .serializers import (IngredientsSerializer, RecipeCreateSerializer,
                           RecipeFavoriteSerializer, RecipeSerializer,
@@ -74,22 +73,12 @@ class UserViewSet(UserViewSet):
 
 class IngredientsViewSet(viewsets.ReadOnlyModelViewSet):
     """Получение списка ингредиентов."""
+    queryset = Ingredient.objects.all()
     serializer_class = IngredientsSerializer
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('name', )
-    ordering_fields = ('name', )
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = IngredientsFilter
     permission_classes = (AllowAny,)
     pagination_class = None
-    queryset = Ingredient.objects.all()
-
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        ingredient_name = self.request.GET.get('name')
-        if ingredient_name:
-            filters = Q(name__istartswith=ingredient_name)
-            queryset = queryset.filter(filters).annotate(
-                lower_name=Lower('name')).order_by('lower_name')
-        return queryset
 
 
 class TagsViewSet(viewsets.ReadOnlyModelViewSet):

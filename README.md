@@ -61,7 +61,7 @@ DEBUG=False
 docker compose -f docker-compose.production.yml up
 ```
 ```
-Выполнить миграции, сбор статики и загрузку ингредиентов:
+Выполнить миграции:
 docker compose -f docker-compose.production.yml exec backend python manage.py migrate
 ```
 ```
