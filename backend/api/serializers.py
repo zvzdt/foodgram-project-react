@@ -62,12 +62,6 @@ class SubscriptionSerializer(UserSerializer):
         fields = UserSerializer.Meta.fields + ('recipes_count', 'recipes')
         read_only_fields = ('email', 'username', 'first_name', 'last_name')
 
-    def get_is_subscribed(self, object):
-        user = self.context.get('request').user
-        if user.is_anonymous:
-            return False
-        return Subscription.objects.filter(user=user, author=object).exists()
-
     def get_recipe(self, obj):
         request = self.context.get('request')
         limit = request.GET.get('recipes_limit')
