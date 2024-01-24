@@ -9,7 +9,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv('SECRET_KEY', '123')
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '127.0.0.1').split(',')
+# ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '127.0.0.1').split(',')
+# Для запуска, чтобы не заморачиваться разрешаем все
+ALLOWED_HOSTS = ['*', ]
 
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 

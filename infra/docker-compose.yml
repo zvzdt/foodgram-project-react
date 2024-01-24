@@ -12,7 +12,9 @@ services:
     volumes:
       - pg_data:/var/lib/postgresql/data
   backend:
-    image: zvzdt/foodgram_backend
+#    image: zvzdt/foodgram_backend
+    # Сборка из dockerfile для отладки
+    build: ../backend/
     env_file: ../.env
     volumes:
       - static:/app/static/
