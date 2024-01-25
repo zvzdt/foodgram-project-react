@@ -83,6 +83,10 @@ class Recipe(models.Model):
     image = models.ImageField(
         verbose_name='картинка'
     )
+    pub_date = models.DateTimeField(
+        verbose_name='Дата публикации рецепта',
+        auto_now_add=True,
+    )
     name = models.CharField(
         verbose_name='название',
         max_length=200,
