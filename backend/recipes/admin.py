@@ -26,20 +26,17 @@ class TagAdmin(admin.ModelAdmin):
 
 class RecipeAdmin(admin.ModelAdmin):
     inlines = [RecipeIngredientsInline, ]
-    list_display = ('name', 'author', 'display_tags', 'favorite')
+    list_display = ('name', 'author', 'display_tags', 'is_favorited')
     list_filter = ('name', 'author', 'tags')
     search_fields = ('name',)
-    readonly_fields = ('favorite',)
-    fields = ('image', 'name', 'author', 'text',
-              'tags', 'cooking_time', 'favorite')
 
     def display_tags(self, obj):
         return ', '.join([tag.name for tag in obj.tags.all()])
     display_tags.short_description = 'Теги'
 
-    def favorite(self, obj):
-        return obj.favorite
-    favorite.short_description = 'В избранном'
+    def is_favorited(self, obj):
+        return obj.favorites
+    is_favorited.short_description = 'В избранном'
 
 
 class FavoriteAdmin(admin.ModelAdmin):
